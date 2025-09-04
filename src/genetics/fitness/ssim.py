@@ -1,8 +1,6 @@
 from skimage.metrics import structural_similarity as ssim
 
 def ssim_fitness(target, generated):
-    # target and generated are expected to be numpy arrays (already converted outside)
-
     min_dim = min(target.shape[0], target.shape[1])
     win_size = min(7, min_dim if min_dim % 2 == 1 else min_dim - 1)
 
