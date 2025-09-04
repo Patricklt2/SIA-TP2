@@ -10,6 +10,7 @@ class Individual:
         self.fitness_method = fitness_method
         self.fitness = float('inf')
         self.img = None
+        self.img_array = None
 
         self.create_random_image()
 
@@ -25,7 +26,7 @@ class Individual:
         self.fitness = self.fitness_method(target, generated)
 
     def create_random_image(self):
-        canvas = Image.new("RGBA", (self.width, self.length), self.generate_random_hex_color())
+        canvas = Image.new("RGB", (self.width, self.length), self.generate_random_hex_color())
         img = ImageDraw.Draw(canvas)
 
         region = (self.length + self.width)//8
@@ -47,9 +48,10 @@ class Individual:
             img.polygon(xy, fill=self.generate_random_hex_color())
 
         self.img = canvas
+        self.img_array = np.array(canvas)
     
 
     def to_image(self):
-        i = Image.fromarray(np.array(self.img))
+        i = Image.fromarray(self.img_array)
         i.show()
 
