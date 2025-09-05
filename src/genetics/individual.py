@@ -4,15 +4,21 @@ import numpy as np
 
 # Voy a querer pasarle 1. la img, 2. la funcion de fitness, 3. la mutacion y 4. la seleccion
 class Individual:
-    def __init__(self, fitness_method, l, w):
+    def __init__(self, fitness_method, l, w, image=None):
         self.length = l
         self.width = w
         self.fitness_method = fitness_method
         self.fitness = float('inf')
-        self.img = None
-        self.img_array = None
 
-        self.create_random_image()
+        if image is None:
+            self.img = None
+            self.img_array = None
+
+            self.create_random_image()
+        else:
+            self.img = image
+            self.img_array = np.array(image)
+
 
     @staticmethod
     def generate_random_hex_color():
