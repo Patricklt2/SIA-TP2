@@ -28,23 +28,26 @@ def main():
     
 
     population = Population(
-        population_size=20,
+        population_size=30,
         width=width,
         height=height,
-        n_polygons=3,
+        n_polygons=2,
         fitness_method=mse_fitness,
-        mutation_method=single_gene_mutation,
+        mutation_method=multi_gene_mutation,
         selection_method=elite_selection,
         replacement_method=traditional_replacement,
-        mutation_rate=0.18,
+        mutation_rate=0.15,
         crossover_rate=0.55,
-        elite_size=3
+        elite_size=2
     )
     
-    for generation in range(20000):
+    for generation in range(50000):
         population.create_next_generation(target_array)
         stats = population.get_statistics()
         print(f"Gen {generation}: Best fitness = {stats['best_fitness']}")
+        if stats['best_fitness'] >= 0.01:
+            population.mutation_method = single_gene_mutation
+            
     
     best_individual = population.best_individual
     best_image = best_individual.render()
