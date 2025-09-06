@@ -1,63 +1,68 @@
 import random
-from PIL import Image, ImageDraw
 import numpy as np
+from PIL import Image, ImageDraw
+from .polygon import Polygon
+from .utils import generate_random_hex_color
 
-# Voy a querer pasarle 1. la img, 2. la funcion de fitness, 3. la mutacion y 4. la seleccion
+# The genome includes the features of each individual where each polygon has its own color and vertices, and the individual has a background color
+# All of these features can be mutated or crossed over
+# i.e. genome = [ [background_color, polygon1], [background, polygon2], ..., [background,polygonN]] 
+# To mutate we can change color, vertices (though this would not be good for the basic version) or add/remove polygons
+# Background color is part of each chromosome, its a global gene for the individual
+# To crossover we can swap polygons between two individuals or blend colors/vertices
+# 
+# Each individual can render, calculate fitness, mutate and store its genome
 class Individual:
-    def __init__(self, fitness_method, l, w, image=None):
-        self.length = l
-        self.width = w
+    def __init__(self, width, height, n_polygons, fitness_method, mutation_method):
+        # Image dimensions
+        self.width = width
+        self.height = height
+
+        # Genetic methods
         self.fitness_method = fitness_method
+        self.mutation_method = mutation_method
+
+        # Genome
+        self.background = generate_random_hex_color()
+        self.polygons = [Polygon.random(width, height) for _ in range(n_polygons)]
+
         self.fitness = float('inf')
+        self.img = None
 
-        if image is None:
-            self.img = None
-            self.img_array = None
-
-            self.create_random_image()
-        else:
-            self.img = image
-            self.img_array = np.array(image)
-
-
-    @staticmethod
-    def generate_random_hex_color():
-        random_int = random.randint(0, 0xFFFFFF)
-        hex_color = '#{:06x}'.format(random_int)
-        return hex_color
+    def render(self):
+        canvas = Image.new("RGB", (self.width, self.height), self.background)
+        draw = ImageDraw.Draw(canvas, 'RGB')
+        for poly in self.polygons:
+            draw.polygon(poly.vertices, fill=poly.color)
+        self.img = canvas
+        return canvas
 
     def calculate_fitness(self, reference_img):
+        generated = np.array(self.render())  # Process the rendered image as a numpy array
         target = np.array(reference_img)
-        generated = np.array(self.img)
         self.fitness = self.fitness_method(target, generated)
+        return self.fitness
 
-    def create_random_image(self):
-        canvas = Image.new("RGB", (self.width, self.length), self.generate_random_hex_color())
-        img = ImageDraw.Draw(canvas)
+    def mutate(self, mutation_rate=0.05):   # Mutate according to method provided, this way Individuals can mutate differently if needed :)
+        self.mutation_method(self, mutation_rate)
 
-        region = (self.length + self.width)//8
-
-        ITERATIONS = 10
-        POLIGON_VERTEXES = 3 # triangles at first, but this could become variable
-
-        for i in range(ITERATIONS):
-            # Select a random subregion in the canvas
-            region_x = random.randint(0, self.length) 
-            region_y = random.randint(0, self.width)
-
-            # Select 3 random points in the subregion
-            xy = []
-            for j in range(POLIGON_VERTEXES):
-                xy.append((random.randint(region_x - region, region_x + region),
-                           random.randint(region_y - region, region_y + region)))
+    def clone(self):
+        new_individual = Individual(
+            self.width,
+            self.height,
+            len(self.polygons),
+            self.fitness_method,
+            self.mutation_method
+        )
         
-            img.polygon(xy, fill=self.generate_random_hex_color())
-
-        self.img = canvas
-        self.img_array = np.array(canvas)
-    
-
-    def to_image(self):
-        i = Image.fromarray(self.img_array)
-        i.show()
-
+        new_individual.background = self.background
+        
+        new_individual.polygons = []
+        for poly in self.polygons:
+            new_poly = Polygon(
+                vertices=poly.vertices[:],
+                color=poly.color
+            )
+            new_individual.polygons.append(new_poly)
+        
+        return new_individual

@@ -17,4 +17,4 @@ fi
 
 source venv/bin/activate
 
-$PYTHON -m src.main
+$PYTHON -m src.genetics.genetics
