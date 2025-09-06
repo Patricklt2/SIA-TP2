@@ -21,7 +21,7 @@ def main():
 
     
     width, height = 64, 64
-    target_img = Image.new("RGB", (width, height), "blue")
+    target_img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(target_img)
     draw.polygon([(32, 10), (10, 50), (54, 50)], fill="red")
     target_array = np.array(target_img)
@@ -36,12 +36,12 @@ def main():
         mutation_method=single_gene_mutation,
         selection_method=elite_selection,
         replacement_method=traditional_replacement,
-        mutation_rate=0.1,
+        mutation_rate=0.18,
         crossover_rate=0.55,
         elite_size=3
     )
     
-    for generation in range(50000):
+    for generation in range(20000):
         population.create_next_generation(target_array)
         stats = population.get_statistics()
         print(f"Gen {generation}: Best fitness = {stats['best_fitness']}")

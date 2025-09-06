@@ -1,7 +1,7 @@
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 
-def mixed_fitness(target, generated, alpha=0.2):
+def mixed_fitness(target, generated, alpha=0.6):
     if len(target.shape) == 3:
         target_gray = np.mean(target, axis=2)
         generated_gray = np.mean(generated, axis=2)

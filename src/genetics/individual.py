@@ -22,15 +22,13 @@ class Individual:
         self.fitness_method = fitness_method
         self.mutation_method = mutation_method
 
-        # Genome
-        self.background = generate_random_hex_color()
         self.polygons = [Polygon.random(width, height) for _ in range(n_polygons)]
 
         self.fitness = float('inf')
         self.img = None
 
     def render(self):
-        canvas = Image.new("RGB", (self.width, self.height), self.background)
+        canvas = Image.new("RGB", (self.width, self.height), "white")
         draw = ImageDraw.Draw(canvas, 'RGB')
         for poly in self.polygons:
             draw.polygon(poly.vertices, fill=poly.color)
@@ -54,8 +52,6 @@ class Individual:
             self.fitness_method,
             self.mutation_method
         )
-        
-        new_individual.background = self.background
         
         new_individual.polygons = []
         for poly in self.polygons:

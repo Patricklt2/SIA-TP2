@@ -14,7 +14,4 @@ def single_point_crossover(parent1, parent2):
     child1.polygons = parent1.polygons[:crossover_point] + parent2.polygons[crossover_point:]
     child2.polygons = parent2.polygons[:crossover_point] + parent1.polygons[crossover_point:]
     
-    child1.background = blend_colors(parent1.background, parent2.background)
-    child2.background = blend_colors(parent1.background, parent2.background)
-    
     return child1, child2

@@ -9,10 +9,8 @@ def multi_gene_mutation(individual, mutation_rate):
 
         for _ in range(n_mutations):
             r = random.random()
-            if r < 0.10:
-                individual.background = generate_random_hex_color()
             
-            elif r < 0.40:
+            if r < 0.40:
                 if individual.polygons:
                     poly = random.choice(individual.polygons)
                     poly.color = generate_random_hex_color()

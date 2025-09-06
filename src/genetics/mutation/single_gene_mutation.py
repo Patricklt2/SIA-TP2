@@ -3,15 +3,13 @@ from src.genetics.individual import Individual
 from src.genetics.utils import generate_random_hex_color
 from src.genetics.polygon import Polygon
 
-# This will only mutate one gene at a time, be it background color, polygon color or polygon vertex
+# This will only mutate one gene at a time, polygon color or polygon vertex or adding/ removing polygons
 # It reffers to the first gene mutation method described on the ppt
 def single_gene_mutation(individual, mutation_rate):
     if random.random() < mutation_rate:
         r = random.random()
         
-        if r < 0.10:
-            individual.background = generate_random_hex_color()
-        elif r < 0.40:
+        if r < 0.40:
             poly = random.choice(individual.polygons)
             poly.color = generate_random_hex_color()
         elif r < 0.60:
@@ -26,4 +24,5 @@ def single_gene_mutation(individual, mutation_rate):
         elif r < 0.90:
             individual.polygons.append(Polygon.random(individual.width, individual.height))
         else:
-            individual.polygons.pop(random.randrange(len(individual.polygons)))
+            if len(individual.polygons) > 1:
+                individual.polygons.pop(random.randrange(len(individual.polygons)))
