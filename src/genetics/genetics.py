@@ -33,7 +33,7 @@ def main():
         height=height,
         n_polygons=2,
         fitness_method=mse_fitness,
-        mutation_method=multi_gene_mutation,
+        mutation_method=single_gene_mutation,
         selection_method=elite_selection,
         replacement_method=traditional_replacement,
         mutation_rate=0.15,
@@ -41,12 +41,10 @@ def main():
         elite_size=2
     )
     
-    for generation in range(50000):
+    for generation in range(20000):
         population.create_next_generation(target_array)
         stats = population.get_statistics()
         print(f"Gen {generation}: Best fitness = {stats['best_fitness']}")
-        if stats['best_fitness'] >= 0.01:
-            population.mutation_method = single_gene_mutation
             
     
     best_individual = population.best_individual
