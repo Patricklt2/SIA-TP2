@@ -26,9 +26,8 @@ def multi_gene_mutation(individual, mutation_rate):
                         random.randint(0, individual.width),
                         random.randint(0, individual.height)
                     )
-            
-            elif r < 0.90:
-                individual.polygons.append(Polygon.random(individual.width, individual.height))
-                
             else:
-                individual.polygons.pop(random.randrange(len(individual.polygons)))
+                if random.random() < 0.5 and len(individual.polygons) < max_polygons:
+                    individual.polygons.append(Polygon.random(individual.width, individual.height))
+                elif len(individual.polygons) > min_polygons:
+                    individual.polygons.pop(random.randrange(len(individual.polygons)))
