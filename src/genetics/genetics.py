@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 import random
 import os
-
+import matplotlib.pyplot as plt
 # multiprocessing seed helpers
 from .preprocessing.tiling import compute_tile_seeds
 from .preprocessing.shared_seed_store import create_shared_seed_store, update_seed_if_better, find_seed_by_point
@@ -54,7 +54,7 @@ def main():
         population_size=30,
         width=width,
         height=height,
-        n_polygons=100,
+        n_polygons=5,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=elite_selection,
@@ -66,17 +66,33 @@ def main():
         seed_frac=0.4
     )
     
-    for generation in range(10000):
+    # Run the first generation to create individuals
+    population.create_next_generation(target_array)
+
+    # Initial render
+    best_image = population.best_individual.render()
+    best_array = np.array(best_image)
+
+    plt.ion()
+    fig, ax = plt.subplots()
+    img_display = ax.imshow(best_array)
+    plt.title("GA Image Evolution")
+
+    # Continue GA loop
+    for generation in range(1, 10000):
         population.create_next_generation(target_array)
         stats = population.get_statistics()
         print(f"Gen {generation}: Best fitness = {stats['best_fitness']}")
+
+        best_image = population.best_individual.render()
+        img_display.set_data(np.array(best_image))
+        plt.pause(0.001)
+
         if stats['best_fitness'] >= 0.9:
             break
 
-    best_individual = population.best_individual
-    best_image = best_individual.render()
-    best_image.show()
-    target_img.show()
+    plt.ioff()
+    plt.show()
 
 # (entry point moved to bottom to ensure worker functions are defined before main() runs)
 

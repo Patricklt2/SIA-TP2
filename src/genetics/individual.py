@@ -28,12 +28,28 @@ class Individual:
         self.img = None
 
     def render(self):
-        canvas = Image.new("RGB", (self.width, self.height), "white")
-        draw = ImageDraw.Draw(canvas, 'RGB')
+        canvas = Image.new("RGBA", (self.width, self.height), (255, 255, 255, 255))
+        
         for poly in self.polygons:
-            draw.polygon(poly.vertices, fill=poly.color)
+            temp_img = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
+            temp_draw = ImageDraw.Draw(temp_img)
+            
+            rgba_color = self.hex_to_rgba(poly.color, alpha=128)
+            
+            temp_draw.polygon(poly.vertices, fill=rgba_color)
+            
+            canvas = Image.alpha_composite(canvas, temp_img)
+        
+        canvas = canvas.convert("RGB")
         self.img = canvas
         return canvas
+
+    def hex_to_rgba(self, hex_color, alpha=255):
+        hex_color = hex_color.lstrip('#')
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return (r, g, b, alpha)
 
     def calculate_fitness(self, reference_img):
         generated = np.array(self.render())  # Process the rendered image as a numpy array
