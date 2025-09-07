@@ -14,10 +14,10 @@ def multi_gene_mutation(individual, mutation_rate):
         
         if r < 0.33 and individual.polygons:
             poly = random.choice(individual.polygons)
-            new_color = generate_random_hex_color()
-            poly.color = blend_colors(poly.color, new_color, alpha=0.3)
+            poly.color = generate_random_hex_color()
+            #poly.color = blend_colors(poly.color, new_color, alpha=0.3)
 
-        elif r < 0.8:
+        elif r < 0.5:
             valid_polygons = [p for p in individual.polygons if len(p.vertices) > 0]
             if valid_polygons:
                 poly = random.choice(valid_polygons)
@@ -31,8 +31,4 @@ def multi_gene_mutation(individual, mutation_rate):
                 )
 
         else:
-            if random.random() < 0.5:
-                individual.polygons.append(Polygon.random(individual.width, individual.height))
-            else:
-                if len(individual.polygons) > 1:
-                    individual.polygons.pop(random.randrange(len(individual.polygons)))
+            individual.polygons.append(Polygon.random(individual.width, individual.height))
