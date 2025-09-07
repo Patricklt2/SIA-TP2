@@ -1,7 +1,7 @@
 from .fitness.mse import mse_fitness
 from .fitness.ssim import ssim_fitness
 from .fitness.mixed_fitness import mixed_fitness
-
+from .fitness.mixed_mse_ssim import mixed_fitness_mse_ssim
 from .mutation.single_gene_mutation import single_gene_mutation
 from .mutation.multi_gene_mutation import multi_gene_mutation
 from .selection.elite import elite_selection
@@ -26,7 +26,7 @@ def _calculate_fitness_helper(args):
     return individual.calculate_fitness(reference_img)
 
 def main():
-    target_img = Image.open("./monalisa.webp").convert("RGB")
+    target_img = Image.open("./starry_night.jpg").convert("RGB")
     target_img = target_img.resize((128, 128))
     width, height = target_img.size
     target_array = np.array(target_img)
@@ -35,16 +35,17 @@ def main():
         population_size=100,
         width=width,
         height=height,
-        n_polygons=300,
+        n_polygons=200,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=tournament_selection,
         replacement_method=traditional_replacement,
-        mutation_rate=0.8,
+        mutation_rate=0.1,
         crossover_rate=0.7,
-        elite_size=5,
+        elite_size=7,
         seed_store=None,
-        seed_frac=0.0
+        seed_frac=0.0,
+        target_img=target_img
     )
 
     num_processes = multiprocessing.cpu_count()
@@ -64,8 +65,6 @@ def main():
     img_display = ax.imshow(best_image)
 
     for generation in range(1, max_generations + 1):
-        current_mutation_rate = initial_mutation_rate * (1 - (generation / max_generations))
-        population.mutation_rate = current_mutation_rate
 
         population.create_next_generation()
 
@@ -110,7 +109,8 @@ def _worker_process(worker_id, shared_seeds, target_array, config):
         crossover_rate=config.get('crossover_rate', 0.55),
         elite_size=config.get('elite_size', 1),
         seed_store=None,
-        seed_frac=0.0
+        seed_frac=0.0,
+        target_img=Image.fromarray(target_array)
     )
 
     local_gens = config.get('local_gens', 10)

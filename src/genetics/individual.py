@@ -13,16 +13,17 @@ from .utils import generate_random_hex_color
 # 
 # Each individual can render, calculate fitness, mutate and store its genome
 class Individual:
-    def __init__(self, width, height, n_polygons, fitness_method, mutation_method):
+    def __init__(self, width, height, n_polygons, fitness_method, mutation_method, target_img = None):
         # Image dimensions
         self.width = width
         self.height = height
 
         # Genetic methods
+        self.target_img = target_img
         self.fitness_method = fitness_method
         self.mutation_method = mutation_method
-
-        self.polygons = [Polygon.random(width, height) for _ in range(n_polygons)]
+        self.polygons = [Polygon.random(width, height, n_vertices=3, target_img=target_img) 
+                          for _ in range(n_polygons)]
 
         self.fitness = float('inf')
         self.img = None
@@ -52,8 +53,8 @@ class Individual:
         self.fitness = self.fitness_method(target, generated)
         return self.fitness
 
-    def mutate(self, mutation_rate=0.05):   # Mutate according to method provided, this way Individuals can mutate differently if needed :)
-        self.mutation_method(self, mutation_rate)
+    def mutate(self, target_img, mutation_rate=0.05):   # Mutate according to method provided, this way Individuals can mutate differently if needed :)
+        self.mutation_method(self, target_img, mutation_rate)
 
     def clone(self):
         new_individual = Individual(

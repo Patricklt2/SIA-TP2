@@ -11,4 +11,6 @@ def delta_e_fitness(target_img: np.ndarray, generated_img: np.ndarray) -> float:
     
     delta_e = deltaE_ciede2000(target_lab, generated_lab)
     
-    return np.mean(delta_e)
+    mean_delta_e = np.mean(delta_e)
+    
+    return 1 / (1 + mean_delta_e)

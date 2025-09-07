@@ -7,7 +7,7 @@ class Population:
     def __init__(self, population_size, width, height, n_polygons, fitness_method, 
                  mutation_method, selection_method, replacement_method,
                  mutation_rate=0.05, crossover_rate=0.8, elite_size=1,
-                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover):
+                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover, target_img = None):
         self.population_size = population_size
         self.width = width
         self.height = height
@@ -27,6 +27,7 @@ class Population:
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
         self.elite_size = elite_size
+        self.target_img = target_img
         
         self.individuals = []
         n_seeded = 0
@@ -39,7 +40,7 @@ class Population:
 
         n_random = population_size - len(self.individuals)
         self.individuals.extend([
-            Individual(width, height, n_polygons, fitness_method, mutation_method)
+            Individual(width, height, n_polygons, fitness_method, mutation_method, target_img=self.target_img)
             for _ in range(n_random)
         ])
         self.generation = 0
@@ -84,8 +85,8 @@ class Population:
                 else:
                     child1, child2 = parent1.clone(), parent2.clone()
 
-                child1.mutate(self.mutation_rate)
-                child2.mutate(self.mutation_rate)
+                child1.mutate(self.mutation_rate, self.target_img)
+                child2.mutate(self.mutation_rate, self.target_img)
                 offspring.extend([child1, child2])
 
         new_population = self.replacement_method(self.individuals, offspring, self.elite_size)
@@ -100,7 +101,7 @@ class Population:
 
         Remaining polygons (if any) are random.
         """
-        ind = Individual(width, height, n_polygons, fitness_method, mutation_method)
+        ind = Individual(width, height, n_polygons, fitness_method, mutation_method, target_img=self.target_img)
 
         seeded_poly = None
         try:

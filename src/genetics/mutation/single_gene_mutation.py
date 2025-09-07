@@ -3,7 +3,7 @@ from src.genetics.individual import Individual
 from src.genetics.utils import generate_random_hex_color, blend_colors
 from src.genetics.polygon import Polygon
 
-def single_gene_mutation(individual, mutation_rate):
+def single_gene_mutation(individual, mutation_rate, target_img):
     if random.random() >= mutation_rate:
         return
 
@@ -11,8 +11,12 @@ def single_gene_mutation(individual, mutation_rate):
     r = random.random()
 
     if r < 0.3:
-        new_color = generate_random_hex_color()
-        poly.color = blend_colors(poly.color, new_color, alpha=0.5)
+        x = random.randint(0, individual.width - 1)
+        y = random.randint(0, individual.height - 1)
+        new_color = target_img.getpixel((x, y))
+        
+        alpha = poly.color[3]
+        poly.color = (new_color[0], new_color[1], new_color[2], alpha)
     elif r < 0.6:
         valid_vertices = [v for v in poly.vertices]
         if valid_vertices:
