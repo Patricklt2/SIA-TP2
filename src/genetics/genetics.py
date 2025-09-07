@@ -8,6 +8,7 @@ from .selection.elite import elite_selection
 from .selection.torneos import tournament_selection
 from .next_gen.traditional_selection import traditional_replacement
 from .crossover.single_point_crossover import single_point_crossover
+
 from .population import Population
 import numpy as np
 from PIL import Image, ImageDraw
@@ -54,15 +55,16 @@ def main():
         population_size=30,
         width=width,
         height=height,
-        n_polygons=5,
+        n_polygons=10,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=elite_selection,
         replacement_method=traditional_replacement,
-        mutation_rate=0.18,
-        crossover_rate=0.6,
+        crossover_method=single_point_crossover,
+        mutation_rate=0.15,
+        crossover_rate=0.7,
         elite_size=3,
-        seed_store=shared,
+        seed_store=None,
         seed_frac=0.4
     )
     

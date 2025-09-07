@@ -7,12 +7,13 @@ class Population:
     def __init__(self, population_size, width, height, n_polygons, fitness_method, 
                  mutation_method, selection_method, replacement_method,
                  mutation_rate=0.05, crossover_rate=0.8, elite_size=1,
-                 seed_store=None, seed_frac=0.0):
+                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover):
         self.population_size = population_size
         self.width = width
         self.height = height
         self.n_polygons = n_polygons
         self.fitness_method = fitness_method
+        self.crossover_method = crossover_method
         # If a seed_store is provided, wrap the mutation_method with a seed-guided variant
         if seed_store is not None:
             try:
@@ -87,7 +88,7 @@ class Population:
                 parent1, parent2 = parents[i], parents[i+1]
 
                 if random.random() < self.crossover_rate:
-                    child1, child2 = single_point_crossover(parent1, parent2)
+                    child1, child2 = self.crossover_method(parent1, parent2)
                 else:
                     child1, child2 = parent1.clone(), parent2.clone()
 

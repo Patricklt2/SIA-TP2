@@ -16,17 +16,15 @@ def single_gene_mutation(individual, mutation_rate):
         new_color = generate_random_hex_color()
         poly.color = blend_colors(poly.color, new_color, alpha=0.5)
 
-    elif r < 0.6:
+    else:
         valid_polygons = [p for p in individual.polygons if len(p.vertices) > 0]
         if valid_polygons:
             poly = random.choice(valid_polygons)
             idx = random.randrange(len(poly.vertices))
             x, y = poly.vertices[idx]
-            dx = random.randint(-5, 5)
-            dy = random.randint(-5, 5)
+            dx = random.randint(-individual.width, individual.width)
+            dy = random.randint(-individual.height, individual.height)
             poly.vertices[idx] = (
                 min(max(x + dx, 0), individual.width),
                 min(max(y + dy, 0), individual.height)
             )
-    else:
-        individual.polygons.append(Polygon.random(individual.width, individual.height))

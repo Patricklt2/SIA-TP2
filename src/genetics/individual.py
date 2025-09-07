@@ -34,7 +34,7 @@ class Individual:
             temp_img = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
             temp_draw = ImageDraw.Draw(temp_img)
             
-            rgba_color = self.hex_to_rgba(poly.color, alpha=128)
+            rgba_color = self.hex_to_rgba(poly.color, alpha=64)
             
             temp_draw.polygon(poly.vertices, fill=rgba_color)
             
@@ -64,17 +64,12 @@ class Individual:
         new_individual = Individual(
             self.width,
             self.height,
-            len(self.polygons),
+            0,
             self.fitness_method,
             self.mutation_method
         )
-        
-        new_individual.polygons = []
-        for poly in self.polygons:
-            new_poly = Polygon(
-                vertices=poly.vertices[:],
-                color=poly.color
-            )
-            new_individual.polygons.append(new_poly)
-        
+        new_individual.polygons = [
+            Polygon(vertices=poly.vertices[:], color=poly.color)
+            for poly in self.polygons
+        ]
         return new_individual

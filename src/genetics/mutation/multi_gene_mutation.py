@@ -23,10 +23,8 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float):
         r = random.random()
 
         if r < 0.4:
-            new_color = generate_random_hex_color()
-            poly.color = blend_colors(poly.color, new_color, alpha=random.uniform(0.1, 0.3))
-
-        elif r < 0.6 and len(poly.vertices) > 0:
+            poly.color =  generate_random_hex_color()
+        else:
             vertices = np.array(poly.vertices)
             shifts = np.random.randint(-15, 16, size=vertices.shape)
             vertices += shifts
@@ -34,5 +32,3 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float):
             vertices[:, 1] = np.clip(vertices[:, 1], 0, individual.height)
             poly.vertices = [tuple(v) for v in vertices]
 
-        else:
-            individual.polygons.append(Polygon.random(individual.width, individual.height))
