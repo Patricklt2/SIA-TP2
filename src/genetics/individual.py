@@ -29,17 +29,12 @@ class Individual:
 
     def render(self):
         canvas = Image.new("RGBA", (self.width, self.height), (255, 255, 255, 255))
-        
         for poly in self.polygons:
             temp_img = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
             temp_draw = ImageDraw.Draw(temp_img)
-            
-            rgba_color = self.hex_to_rgba(poly.color, alpha=64)
-            
-            temp_draw.polygon(poly.vertices, fill=rgba_color)
-            
+
+            temp_draw.polygon(poly.vertices, fill=poly.color)
             canvas = Image.alpha_composite(canvas, temp_img)
-        
         canvas = canvas.convert("RGB")
         self.img = canvas
         return canvas
@@ -52,7 +47,7 @@ class Individual:
         return (r, g, b, alpha)
 
     def calculate_fitness(self, reference_img):
-        generated = np.array(self.render())  # Process the rendered image as a numpy array
+        generated = np.array(self.render())
         target = np.array(reference_img)
         self.fitness = self.fitness_method(target, generated)
         return self.fitness

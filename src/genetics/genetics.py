@@ -21,68 +21,58 @@ from .preprocessing.shared_seed_store import create_shared_seed_store, update_se
 import multiprocessing
 import time
 
-def main():
+def _calculate_fitness_helper(args):
+    individual, reference_img = args
+    return individual.calculate_fitness(reference_img)
 
+def main():
     target_img = Image.open("./monalisa.webp").convert("RGB")
     target_img = target_img.resize((128, 128))
     width, height = target_img.size
     target_array = np.array(target_img)
 
-    """
-    width, height = 64, 64
-    target_img = Image.new("RGB", (width, height), "white")
-    draw = ImageDraw.Draw(target_img)
-    draw.polygon([(32, 10), (10, 50), (54, 50)], fill="red")
-    target_array = np.array(target_img)"""
-    
-
-    # Phase 1: compute/refine tile seeds — use multiprocessing workers if requested
-    workers_env = os.getenv('WORKERS')
-    tile_env = os.getenv('TILE_SIZE')
-    tile_size = int(tile_env) if tile_env else 8
-
-    if workers_env and int(workers_env) > 0:
-        n_workers = int(workers_env)
-        print(f'Running seed workers (phase 1) with {n_workers} workers, tile_size={tile_size}')
-        shared = run_with_workers(target_array, n_workers=n_workers, tile_size=tile_size)
-    else:
-        print('Computing seeds locally (no workers)')
-        shared = compute_tile_seeds(target_array, tile_size=tile_size)
-
-    # Phase 2: use elite selection GA seeded with shared seeds to refine approximation
-    print('Running elitist GA (phase 2) with seeded initialization')
     population = Population(
-        population_size=30,
+        population_size=100,
         width=width,
         height=height,
-        n_polygons=10,
+        n_polygons=300,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
-        selection_method=elite_selection,
+        selection_method=tournament_selection,
         replacement_method=traditional_replacement,
-        crossover_method=single_point_crossover,
-        mutation_rate=0.15,
+        mutation_rate=0.8,
         crossover_rate=0.7,
-        elite_size=3,
+        elite_size=5,
         seed_store=None,
-        seed_frac=0.4
+        seed_frac=0.0
     )
-    
-    # Run the first generation to create individuals
-    population.create_next_generation(target_array)
 
-    # Initial render
-    best_image = population.best_individual.render()
-    best_array = np.array(best_image)
+    num_processes = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_processes)
+    
+    initial_mutation_rate = population.mutation_rate
+    max_generations = 10000
 
     plt.ion()
     fig, ax = plt.subplots()
-    img_display = ax.imshow(best_array)
-    plt.title("GA Image Evolution")
 
-    # Continue GA loop
-    for generation in range(1, 10000):
-        population.create_next_generation(target_array)
+    tasks = population.prepare_fitness_tasks(target_array)
+    results = pool.map(_calculate_fitness_helper, tasks)
+    population.update_fitness_from_results(results)
+
+    best_image = population.best_individual.render()
+    img_display = ax.imshow(best_image)
+
+    for generation in range(1, max_generations + 1):
+        current_mutation_rate = initial_mutation_rate * (1 - (generation / max_generations))
+        population.mutation_rate = current_mutation_rate
+
+        population.create_next_generation()
+
+        tasks = population.prepare_fitness_tasks(target_array)
+        results = pool.map(_calculate_fitness_helper, tasks)
+        population.update_fitness_from_results(results)
+
         stats = population.get_statistics()
         print(f"Gen {generation}: Best fitness = {stats['best_fitness']}")
 
@@ -91,12 +81,13 @@ def main():
         plt.pause(0.001)
 
         if stats['best_fitness'] >= 0.9:
+            print("Stopping criteria met: Fitness >= 0.9")
             break
 
+    pool.close()
+    pool.join()
     plt.ioff()
     plt.show()
-
-# (entry point moved to bottom to ensure worker functions are defined before main() runs)
 
 
 def _worker_process(worker_id, shared_seeds, target_array, config):
@@ -106,7 +97,6 @@ def _worker_process(worker_id, shared_seeds, target_array, config):
     occasionally tries to publish improved tile colors for the tiles it intersects.
     """
     print(f"Worker {worker_id} started")
-    # Do not pass the Manager proxy as seed_store into Population constructor to avoid proxy iteration
     pop = Population(
         population_size=config.get('population_size', 50),
         width=target_array.shape[1],

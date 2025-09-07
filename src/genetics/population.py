@@ -14,7 +14,6 @@ class Population:
         self.n_polygons = n_polygons
         self.fitness_method = fitness_method
         self.crossover_method = crossover_method
-        # If a seed_store is provided, wrap the mutation_method with a seed-guided variant
         if seed_store is not None:
             try:
                 from .mutation.seed_guided_mutation import make_seed_guided_mutation
@@ -29,18 +28,15 @@ class Population:
         self.crossover_rate = crossover_rate
         self.elite_size = elite_size
         
-        # Optionally create a fraction of seeded individuals from seed_store
         self.individuals = []
         n_seeded = 0
         if seed_store and seed_frac and seed_frac > 0:
             n_seeded = int(population_size * float(seed_frac))
             seeds = list(seed_store) if not isinstance(seed_store, dict) else list(seed_store.values())
-            # sample seeds to create seeded individuals
             for s in random.sample(seeds, min(n_seeded, len(seeds))):
                 ind = self._create_seeded_individual(s, width, height, n_polygons, fitness_method, mutation_method)
                 self.individuals.append(ind)
 
-        # fill the rest randomly
         n_random = population_size - len(self.individuals)
         self.individuals.extend([
             Individual(width, height, n_polygons, fitness_method, mutation_method)
@@ -48,20 +44,19 @@ class Population:
         ])
         self.generation = 0
         self.best_individual = None
-        # fitness functions return higher = better, so initialize to -inf
         self.best_fitness = float('-inf')
-    
-    def evaluate_population(self, reference_img):
-        for individual in self.individuals:
-            individual.calculate_fitness(reference_img)
+
+    def prepare_fitness_tasks(self, reference_img):
+        return [(individual, reference_img) for individual in self.individuals]
         
-        # fitness functions in this project return higher = better
+    def update_fitness_from_results(self, results):
+        for individual, fitness in zip(self.individuals, results):
+            individual.fitness = fitness
+        
         current_best = max(self.individuals, key=lambda x: x.fitness)
         if self.best_individual is None or current_best.fitness > self.best_fitness:
-            self.best_individual = current_best
+            self.best_individual = current_best.clone() 
             self.best_fitness = current_best.fitness
-        
-        return self.individuals
     
     def get_statistics(self):
         fitnesses = [ind.fitness for ind in self.individuals]
@@ -76,10 +71,7 @@ class Population:
             'std_deviation': np.std(fitnesses) if len(fitnesses) > 1 else 0
         }
 
-    def create_next_generation(self, reference_img):
-        # Evaluate current population and produce the next generation
-        self.evaluate_population(reference_img)
-
+    def create_next_generation(self):
         parents = self.selection_method(self.individuals, self.population_size - self.elite_size)
 
         offspring = []
@@ -99,8 +91,6 @@ class Population:
         new_population = self.replacement_method(self.individuals, offspring, self.elite_size)
 
         self.individuals = new_population
-        # evaluate the new population so all individuals have a computed fitness
-        self.evaluate_population(reference_img)
         self.generation += 1
 
         return self.individuals
@@ -112,10 +102,8 @@ class Population:
         """
         ind = Individual(width, height, n_polygons, fitness_method, mutation_method)
 
-        # convert hex color to PIL-compatible color (hex works fine)
         seeded_poly = None
         try:
-            # support both object with attributes and mapping (dict) seeds
             if hasattr(seed, 'bbox'):
                 x0, y0, x1, y1 = seed.bbox
                 mean_color = getattr(seed, 'mean_color', None)
@@ -123,17 +111,14 @@ class Population:
                 x0, y0, x1, y1 = seed.get('bbox')
                 mean_color = seed.get('mean_color')
             else:
-                # try attribute access fallback
                 x0, y0, x1, y1 = seed.bbox
                 mean_color = getattr(seed, 'mean_color', None)
-            # create triangle covering the tile (two triangles would fully cover, but we use one triangle as a seed)
             vertices = [(x0, y0), (x1, y0), (x0, y1)]
             from .polygon import Polygon
             seeded_poly = Polygon(vertices=vertices, color=mean_color)
         except Exception:
-            # fallback: just return a random individual
             return ind
 
-        # replace first polygon with seeded polygon
+
         ind.polygons[0] = seeded_poly
         return ind

@@ -12,5 +12,9 @@ class Polygon:
     def random(width, height, n_vertices=3):
         vertices = [(random.randint(0, width), random.randint(0, height)) 
                     for _ in range(n_vertices)]
-        color = generate_random_hex_color()
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        a = random.randint(30, 100)  
+        color = (r, g, b, a)
         return Polygon(vertices, color)
