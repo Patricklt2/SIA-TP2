@@ -22,17 +22,17 @@ import time
 
 def main():
 
-    """target_img = Image.open("./monalisa.webp").convert("RGB")
+    target_img = Image.open("./monalisa.webp").convert("RGB")
     target_img = target_img.resize((128, 128))
     width, height = target_img.size
-    target_array = np.array(target_img)"""
+    target_array = np.array(target_img)
 
-    
+    """
     width, height = 64, 64
     target_img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(target_img)
     draw.polygon([(32, 10), (10, 50), (54, 50)], fill="red")
-    target_array = np.array(target_img)
+    target_array = np.array(target_img)"""
     
 
     # Phase 1: compute/refine tile seeds — use multiprocessing workers if requested
@@ -51,25 +51,27 @@ def main():
     # Phase 2: use elite selection GA seeded with shared seeds to refine approximation
     print('Running elitist GA (phase 2) with seeded initialization')
     population = Population(
-        population_size=500,
+        population_size=30,
         width=width,
         height=height,
-        n_polygons=2,
+        n_polygons=100,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=elite_selection,
         replacement_method=traditional_replacement,
-        mutation_rate=0.10,
-        crossover_rate=0.55,
-        elite_size=2,
+        mutation_rate=0.18,
+        crossover_rate=0.6,
+        elite_size=3,
         seed_store=shared,
         seed_frac=0.4
     )
     
-    for generation in range(20000):
+    for generation in range(10000):
         population.create_next_generation(target_array)
         stats = population.get_statistics()
         print(f"Gen {generation}: Best fitness = {stats['best_fitness']}")
+        if stats['best_fitness'] >= 0.9:
+            break
 
     best_individual = population.best_individual
     best_image = best_individual.render()
