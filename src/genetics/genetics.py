@@ -24,7 +24,7 @@ def _calculate_fitness_helper(args):
     return individual.calculate_fitness(reference_img)
 
 def main():
-    target_img = Image.open("./starry_night.jpg").convert("RGB")
+    target_img = Image.open("./banderas.jpg").convert("RGB")
     target_array = np.array(target_img)
 
     population = Population(

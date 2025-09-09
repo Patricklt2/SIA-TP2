@@ -51,7 +51,7 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
                 max_y = min(individual.height - 1, int(max_y))
 
                 if min_x <= max_x and min_y <= max_y:
-                    if random.random() < 0.6:
+                    if random.random() < 0.2:
                         x = random.randint(min_x, max_x)
                         y = random.randint(min_y, max_y)
                         new_color = target_img.getpixel((x, y))
