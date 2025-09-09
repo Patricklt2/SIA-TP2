@@ -27,23 +27,21 @@ def main():
     target_array = np.array(target_img)
 
     population = Population(
-        population_size=20,
+        population_size=100,
         n_polygons=60,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=tournament_selection,
         replacement_method=traditional_replacement,
         mutation_rate=0.1,
-        crossover_rate=0.7,
-        elite_size=2,
+        crossover_rate=0.75,
+        elite_size=5,
         target_img=target_img,
         crossover_method=two_point_crossover
     )
 
     num_processes = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=num_processes)
-    
-    initial_mutation_rate = population.mutation_rate
     max_generations = 50000
 
     plt.ion()
@@ -56,10 +54,9 @@ def main():
     best_image = population.best_individual.render()
     img_display = ax.imshow(best_image)
 
-    stagnation_counter = 0
-    stagnation_threshold = 20
-    original_mutation_rate = 0.1
-    increased_mutation_rate = 0.2
+
+    original_mutation_rate = population.mutation_rate
+    increased_mutation_rate = 0.3
     best_fitness_last_gen = 0.0
     
 
@@ -74,18 +71,12 @@ def main():
         stats = population.get_statistics()
         current_best_fitness = stats['best_fitness']
         print(f"Gen {generation}: Best fitness = {current_best_fitness}")
-        
-        if current_best_fitness <= best_fitness_last_gen:
-            stagnation_counter += 1
-        else:
-            stagnation_counter = 0
-            population.mutation_rate = original_mutation_rate
             
-        if stagnation_counter >= stagnation_threshold:
-            print(f"Stagnation detected. Increasing mutation rate to {increased_mutation_rate}")
+        if generation % 100 < 40:
             population.mutation_rate = increased_mutation_rate
-            stagnation_counter = 0 
-            
+        else:
+            population.mutation_rate = original_mutation_rate
+        
         best_fitness_last_gen = current_best_fitness
 
         best_image = population.best_individual.render()
