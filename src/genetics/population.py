@@ -80,3 +80,15 @@ class Population:
         self.generation += 1
 
         return self.individuals
+
+    def reinitialize_individuals(self, num_to_reinitialize):
+        self.individuals.sort(key=lambda x: x.fitness)
+        
+        del self.individuals[:num_to_reinitialize]
+        
+        new_random_individuals = [
+            Individual(self.width, self.height, self.n_polygons, self.fitness_method, self.mutation_method, target_img=self.target_img)
+            for _ in range(num_to_reinitialize)
+        ]
+        
+        self.individuals.extend(new_random_individuals)

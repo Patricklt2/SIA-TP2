@@ -19,7 +19,7 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
     n_mutations = max(1, int(n_polygons * random.uniform(0.1, 0.25)))
     mutate_indices = np.random.choice(n_polygons, n_mutations, replace=False)
     mutation_types = ['vertex', 'color', 'alpha', 'swap']
-    probabilities = [0.6, 0.2, 0.1, 0.1]
+    probabilities = [0.3, 0.4, 0.15, 0.15]
 
     for idx in mutate_indices:
         mutation_type = random.choices(mutation_types, weights=probabilities, k=1)[0]
@@ -29,7 +29,7 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
             if poly.vertices:
                 vertices = np.array(poly.vertices)
                 for i in range(len(vertices)):
-                    if random.random() < 0.05:
+                    if random.random() < 0.2:
                         vertices[i, 0] = random.randint(0, individual.width)
                         vertices[i, 1] = random.randint(0, individual.height)
                     else:
@@ -51,13 +51,25 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
                 max_y = min(individual.height - 1, int(max_y))
 
                 if min_x <= max_x and min_y <= max_y:
-                    x = random.randint(min_x, max_x)
-                    y = random.randint(min_y, max_y)
-                    new_color = target_img.getpixel((x, y))
-                    if isinstance(new_color, int):
-                        new_color = (new_color, new_color, new_color, poly.color[3])
-                    elif len(new_color) == 3:
-                        new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
+                    if random.random() < 0.6:
+                        x = random.randint(min_x, max_x)
+                        y = random.randint(min_y, max_y)
+                        new_color = target_img.getpixel((x, y))
+                        
+                        if isinstance(new_color, int):
+                            new_color = (new_color, new_color, new_color, poly.color[3])
+                        elif len(new_color) == 3:
+                            new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
+                        elif len(new_color) == 4:
+                            new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
+                    else:
+                        new_color = (
+                            random.randint(0, 255),
+                            random.randint(0, 255),
+                            random.randint(0, 255),
+                            poly.color[3]
+                        )
+                        
                     poly.color = new_color
 
         elif mutation_type == 'alpha':

@@ -10,6 +10,7 @@ from .next_gen.traditional_selection import traditional_replacement
 from .crossover.single_point_crossover import single_point_crossover
 from .crossover.two_point_crossover import two_point_crossover
 from .crossover.uniform_crossover import uniform_crossover
+from .next_gen.young_byass import young_bias_replacement
 
 from .population import Population
 import numpy as np
@@ -27,15 +28,15 @@ def main():
     target_array = np.array(target_img)
 
     population = Population(
-        population_size=100,
+        population_size=150,
         n_polygons=60,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=tournament_selection,
-        replacement_method=traditional_replacement,
-        mutation_rate=0.1,
-        crossover_rate=0.75,
-        elite_size=5,
+        replacement_method=young_bias_replacement,
+        mutation_rate=0.1,  # Initial mutation rate
+        crossover_rate=0.7,
+        elite_size=10,
         target_img=target_img,
         crossover_method=two_point_crossover
     )
@@ -54,16 +55,15 @@ def main():
     best_image = population.best_individual.render()
     img_display = ax.imshow(best_image)
 
-
-    original_mutation_rate = population.mutation_rate
-    increased_mutation_rate = 0.3
+    stagnation_counter = 0
+    stagnation_threshold = 20
+    original_mutation_rate = 0.1
+    increased_mutation_rate = 0.6
     best_fitness_last_gen = 0.0
-    
 
-    
     for generation in range(1, max_generations + 1):
         population.create_next_generation()
-        
+
         tasks = population.prepare_fitness_tasks(target_array)
         results = pool.map(_calculate_fitness_helper, tasks)
         population.update_fitness_from_results(results)
@@ -71,12 +71,18 @@ def main():
         stats = population.get_statistics()
         current_best_fitness = stats['best_fitness']
         print(f"Gen {generation}: Best fitness = {current_best_fitness}")
-            
-        if generation % 100 < 40:
+        
+        if current_best_fitness > best_fitness_last_gen:
+            stagnation_counter = 0
+        else:
+            stagnation_counter += 1
+
+        if stagnation_counter >= stagnation_threshold:
+            print(f"Stagnation detected. Increasing mutation rate to {increased_mutation_rate}")
             population.mutation_rate = increased_mutation_rate
         else:
             population.mutation_rate = original_mutation_rate
-        
+
         best_fitness_last_gen = current_best_fitness
 
         best_image = population.best_individual.render()
