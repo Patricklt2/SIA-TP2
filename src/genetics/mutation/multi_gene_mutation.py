@@ -28,10 +28,14 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
         if mutation_type == 'vertex':
             if poly.vertices:
                 vertices = np.array(poly.vertices)
-                shifts = np.random.randint(-14, 14, size=vertices.shape)
-                vertices += shifts
-                vertices[:, 0] = np.clip(vertices[:, 0], 0, individual.width)
-                vertices[:, 1] = np.clip(vertices[:, 1], 0, individual.height)
+                for i in range(len(vertices)):
+                    if random.random() < 0.05:
+                        vertices[i, 0] = random.randint(0, individual.width)
+                        vertices[i, 1] = random.randint(0, individual.height)
+                    else:
+                        shift_x, shift_y = np.random.randint(-14, 15, size=2)
+                        vertices[i, 0] = np.clip(vertices[i, 0] + shift_x, 0, individual.width)
+                        vertices[i, 1] = np.clip(vertices[i, 1] + shift_y, 0, individual.height)
                 poly.vertices = [tuple(v) for v in vertices]
 
         elif mutation_type == 'color':
@@ -47,22 +51,13 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
                 max_y = min(individual.height - 1, int(max_y))
 
                 if min_x <= max_x and min_y <= max_y:
-                    if random.random() < 0.1:
-                        new_color = (
-                            random.randint(0, 255),
-                            random.randint(0, 255),
-                            random.randint(0, 255),
-                            poly.color[3]
-                        )
-                    else:
-                        x = random.randint(min_x, max_x)
-                        y = random.randint(min_y, max_y)
-                        new_color = target_img.getpixel((x, y))
-                        if isinstance(new_color, int):
-                            new_color = (new_color, new_color, new_color, poly.color[3])
-                        elif len(new_color) == 3:
-                            new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
-                    
+                    x = random.randint(min_x, max_x)
+                    y = random.randint(min_y, max_y)
+                    new_color = target_img.getpixel((x, y))
+                    if isinstance(new_color, int):
+                        new_color = (new_color, new_color, new_color, poly.color[3])
+                    elif len(new_color) == 3:
+                        new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
                     poly.color = new_color
 
         elif mutation_type == 'alpha':
