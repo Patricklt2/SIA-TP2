@@ -34,36 +34,36 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
                 vertices[:, 1] = np.clip(vertices[:, 1], 0, individual.height)
                 poly.vertices = [tuple(v) for v in vertices]
 
-elif mutation_type == 'color':
-    if poly.vertices:
-        all_x = [v[0] for v in poly.vertices]
-        all_y = [v[1] for v in poly.vertices]
-        min_x, max_x = min(all_x), max(all_x)
-        min_y, max_y = min(all_y), max(all_y)
-        
-        min_x = max(0, int(min_x))
-        max_x = min(individual.width - 1, int(max_x))
-        min_y = max(0, int(min_y))
-        max_y = min(individual.height - 1, int(max_y))
+        elif mutation_type == 'color':
+            if poly.vertices:
+                all_x = [v[0] for v in poly.vertices]
+                all_y = [v[1] for v in poly.vertices]
+                min_x, max_x = min(all_x), max(all_x)
+                min_y, max_y = min(all_y), max(all_y)
+                
+                min_x = max(0, int(min_x))
+                max_x = min(individual.width - 1, int(max_x))
+                min_y = max(0, int(min_y))
+                max_y = min(individual.height - 1, int(max_y))
 
-        if min_x <= max_x and min_y <= max_y:
-            if random.random() < 0.1:
-                new_color = (
-                    random.randint(0, 255),
-                    random.randint(0, 255),
-                    random.randint(0, 255),
-                    poly.color[3]
-                )
-            else:
-                x = random.randint(min_x, max_x)
-                y = random.randint(min_y, max_y)
-                new_color = target_img.getpixel((x, y))
-                if isinstance(new_color, int):
-                    new_color = (new_color, new_color, new_color, poly.color[3])
-                elif len(new_color) == 3:
-                    new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
-            
-            poly.color = new_color
+                if min_x <= max_x and min_y <= max_y:
+                    if random.random() < 0.1:
+                        new_color = (
+                            random.randint(0, 255),
+                            random.randint(0, 255),
+                            random.randint(0, 255),
+                            poly.color[3]
+                        )
+                    else:
+                        x = random.randint(min_x, max_x)
+                        y = random.randint(min_y, max_y)
+                        new_color = target_img.getpixel((x, y))
+                        if isinstance(new_color, int):
+                            new_color = (new_color, new_color, new_color, poly.color[3])
+                        elif len(new_color) == 3:
+                            new_color = (new_color[0], new_color[1], new_color[2], poly.color[3])
+                    
+                    poly.color = new_color
 
         elif mutation_type == 'alpha':
             rgba_list = list(poly.color)
