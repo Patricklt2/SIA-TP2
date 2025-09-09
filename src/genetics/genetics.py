@@ -23,12 +23,12 @@ def _calculate_fitness_helper(args):
     return individual.calculate_fitness(reference_img)
 
 def main():
-    target_img = Image.open("./banderas.jpg").convert("RGB")
+    target_img = Image.open("./starry_night.jpg").convert("RGB")
     target_array = np.array(target_img)
 
     population = Population(
         population_size=20,
-        n_polygons=30,
+        n_polygons=60,
         fitness_method=mse_fitness,
         mutation_method=multi_gene_mutation,
         selection_method=tournament_selection,
@@ -44,7 +44,7 @@ def main():
     pool = multiprocessing.Pool(processes=num_processes)
     
     initial_mutation_rate = population.mutation_rate
-    max_generations = 10000
+    max_generations = 50000
 
     plt.ion()
     fig, ax = plt.subplots()
