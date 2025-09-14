@@ -8,6 +8,7 @@ from .mutation.single_gene_mutation import single_gene_mutation
 from .mutation.multi_gene_mutation import multi_gene_mutation
 from .mutation.seed_guided_mutation import make_seed_guided_mutation
 from .mutation.non_uniform_mutation import non_uniform_multi_gene_mutation
+from .mutation.doomsday_mutation import doomsday_mutation
 
 from .selection.elite import elite_selection
 from .selection.torneos import tournament_selection
@@ -23,6 +24,7 @@ from .crossover.single_point_crossover import single_point_crossover
 from .crossover.two_point_crossover import two_point_crossover
 from .crossover.uniform_crossover import uniform_crossover
 from .crossover.circular_crossover import annular_crossover
+from .crossover.artistic_crossover import artistic_crossover
 
 from .population import Population
 import numpy as np
@@ -61,12 +63,15 @@ def main():
         "mixed_mse_ssim": mixed_fitness_mse_ssim,
         "deltaE": delta_e_fitness,
     }
+
     mutation_map = {
         "single_gene": single_gene_mutation,
         "multi_gene": multi_gene_mutation,
         "seed_guided": make_seed_guided_mutation,
-        "non_uniform_multigen": non_uniform_multi_gene_mutation
+        "non_uniform_multigen": non_uniform_multi_gene_mutation,
+        "doomsday": doomsday_mutation
     }
+
     selection_map = {
         "elite": elite_selection,
         "tournament": tournament_selection,
@@ -76,15 +81,18 @@ def main():
         "ranking": ranking_selection,
 
     }
+
     replacement_map = {
         "traditional": traditional_selection,
         "young_bias": young_bias_selection
     }
+
     crossover_map = {
         "single_point": single_point_crossover,
         "two_point": two_point_crossover,
         "uniform": uniform_crossover,
-        "anular": annular_crossover
+        "anular": annular_crossover,
+        "artistic": artistic_crossover
     }
 
     # ------------------ inputs obligatorios ------------------

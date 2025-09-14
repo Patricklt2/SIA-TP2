@@ -7,7 +7,7 @@ from PIL import Image
 
 def _mutate_one_polygon(poly: Polygon, individual: Individual, target_img: Image):
     mutation_types = ['vertex', 'image_color', 'alpha', 'random_color']
-    probabilities = [0.5, 0.25, 0.2, 0.05]
+    probabilities = [0.5, 0.2, 0.2, 0.1]
     mutation_type = random.choices(mutation_types, weights=probabilities, k=1)[0]
 
     if mutation_type == 'vertex' and poly.vertices:
