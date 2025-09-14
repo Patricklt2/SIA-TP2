@@ -1,13 +1,15 @@
 import random
 from .individual import Individual
 from .crossover.single_point_crossover import single_point_crossover
+from src.genetics.mutation.non_uniform_mutation import non_uniform_multi_gene_mutation
 import numpy as np
 
 class Population:
     def __init__(self, population_size, width, height, n_polygons, fitness_method, 
                  mutation_method, selection_method, replacement_method,
                  mutation_rate=0.05, crossover_rate=0.8, elite_size=1,
-                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover, target_img = None):
+                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover, 
+                 target_img = None):
         self.population_size = population_size
         self.width = width
         self.height = height
@@ -47,6 +49,14 @@ class Population:
         self.best_individual = None
         self.best_fitness = float('-inf')
 
+        self.mutation_args = {
+            "mutation_rate": mutation_rate,
+            "target_img": target_img
+        }
+
+        if self.mutation_method == non_uniform_multi_gene_mutation:
+            mutation_args["max_generations"] = max_generations
+
     def prepare_fitness_tasks(self, reference_img):
         return [(individual, reference_img) for individual in self.individuals]
         
@@ -75,6 +85,9 @@ class Population:
     def create_next_generation(self):
         parents = self.selection_method(self.individuals, self.population_size - self.elite_size)
 
+        if self.mutation_method == non_uniform_multi_gene_mutation:
+            mutation_args["current_generation"] = generation
+
         offspring = []
         for i in range(0, len(parents), 2):
             if i + 1 < len(parents):
@@ -85,8 +98,8 @@ class Population:
                 else:
                     child1, child2 = parent1.clone(), parent2.clone()
 
-                child1.mutate(self.mutation_rate, self.target_img)
-                child2.mutate(self.mutation_rate, self.target_img)
+                child1.mutate(**self.mutation_args)
+                child2.mutate(**self.mutation_args)
                 offspring.extend([child1, child2])
 
         new_population = self.replacement_method(self.individuals, offspring)

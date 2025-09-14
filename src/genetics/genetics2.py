@@ -3,17 +3,22 @@ from .fitness.ssim import ssim_fitness
 from .fitness.mixed_fitness import mixed_fitness
 from .fitness.mixed_mse_ssim import mixed_fitness_mse_ssim
 from .fitness.deltaE import delta_e_fitness
+
 from .mutation.single_gene_mutation import single_gene_mutation
 from .mutation.multi_gene_mutation import multi_gene_mutation
 from .mutation.seed_guided_mutation import make_seed_guided_mutation
+from .mutation.non_uniform_mutation import non_uniform_multi_gene_mutation
+
 from .selection.elite import elite_selection
 from .selection.torneos import tournament_selection
 from .selection.ruleta import roulette_selection
 from .selection.universal import stochastic_universal_sampling
 from .selection.boltzmann import boltzmann_selection
 from .selection.ranking import ranking_selection
+
 from .next_gen.traditional_selection import traditional_selection
 from .next_gen.young_bias_selection import young_bias_selection
+
 from .crossover.single_point_crossover import single_point_crossover
 from .crossover.two_point_crossover import two_point_crossover
 from .crossover.uniform_crossover import uniform_crossover
@@ -60,6 +65,7 @@ def main():
         "single_gene": single_gene_mutation,
         "multi_gene": multi_gene_mutation,
         "seed_guided": make_seed_guided_mutation,
+        "non_uniform_multigen": non_uniform_multi_gene_mutation
     }
     selection_map = {
         "elite": elite_selection,
@@ -105,7 +111,7 @@ def main():
     # anti-estancamiento
     stagnation_threshold = int(cfg.get("stagnation_threshold", 20))
     original_mutation_rate = float(cfg.get("original_mutation_rate", mutation_rate))
-    increased_mutation_rate = float(cfg.get("increased_mutation_rate", mutation_rate * 2.0))
+    increased_mutation_rate = float(cfg.get("increased_mutation_rate", mutation_rate * 4.0))
 
     # operadores (por nombre)
     fitness_name = cfg.get("fitness", "mse")

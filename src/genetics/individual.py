@@ -13,48 +13,51 @@ from .utils import generate_random_hex_color
 # 
 # Each individual can render, calculate fitness, mutate and store its genome
 class Individual:
-    def __init__(self, width, height, n_polygons, fitness_method, mutation_method, target_img = None):
-        # Image dimensions
+    def __init__(self, width, height, n_polygons, fitness_method, mutation_method, target_img=None):
         self.width = width
         self.height = height
-
-        # Genetic methods
-        self.target_img = target_img
         self.fitness_method = fitness_method
         self.mutation_method = mutation_method
         self.polygons = [Polygon.random(width, height, n_vertices=3, target_img=target_img) 
-                          for _ in range(n_polygons)]
+                         for _ in range(n_polygons)]
 
         self.fitness = float('inf')
         self.img = None
 
-    def render(self):
+    def render(self, use_cache=True):
+        if use_cache and self.img is not None:
+            return self.img
+
         canvas = Image.new("RGBA", (self.width, self.height), (255, 255, 255, 255))
         for poly in self.polygons:
-            temp_img = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
-            temp_draw = ImageDraw.Draw(temp_img)
+            temp_layer = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
+            temp_draw = ImageDraw.Draw(temp_layer)
 
             temp_draw.polygon(poly.vertices, fill=poly.color)
-            canvas = Image.alpha_composite(canvas, temp_img)
-        canvas = canvas.convert("RGB")
-        self.img = canvas
-        return canvas
+            canvas = Image.alpha_composite(canvas, temp_layer)
 
-    def hex_to_rgba(self, hex_color, alpha=255):
-        hex_color = hex_color.lstrip('#')
-        r = int(hex_color[0:2], 16)
-        g = int(hex_color[2:4], 16)
-        b = int(hex_color[4:6], 16)
-        return (r, g, b, alpha)
+        canvas_rgb = canvas.convert("RGB")
+        self.img = canvas_rgb
+        return self.img
 
-    def calculate_fitness(self, reference_img):
-        generated = np.array(self.render())
-        target = np.array(reference_img)
-        self.fitness = self.fitness_method(target, generated)
+    def calculate_fitness(self, reference_img_array, use_cache=True):
+        if use_cache and self.fitness != float('inf'):
+            return self.fitness
+        
+        generated_img = self.render(use_cache=use_cache)
+        generated_array = np.array(generated_img)
+        
+        self.fitness = self.fitness_method(reference_img_array, generated_array)
         return self.fitness
 
-    def mutate(self, target_img, mutation_rate=0.05):   # Mutate according to method provided, this way Individuals can mutate differently if needed :)
-        self.mutation_method(self, target_img, mutation_rate)
+    def mutate(self, **kwargs):
+        self.mutation_method(
+            self, 
+            **kwargs
+        )
+        
+        self.img = None
+        self.fitness = float('inf')
 
     def clone(self):
         new_individual = Individual(
@@ -64,8 +67,13 @@ class Individual:
             self.fitness_method,
             self.mutation_method
         )
-        new_individual.polygons = [
-            Polygon(vertices=poly.vertices[:], color=poly.color)
-            for poly in self.polygons
-        ]
+
+        new_individual.polygons = [p.clone() for p in self.polygons]
         return new_individual
+
+    def hex_to_rgba(self, hex_color, alpha=255):
+        hex_color = hex_color.lstrip('#')
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return (r, g, b, alpha)
