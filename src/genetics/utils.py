@@ -5,6 +5,23 @@ def generate_random_hex_color():
     hex_color = '#{:06x}'.format(random_int)
     return hex_color
 
+def hex_to_rgba(hex_color, alpha=255):
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) == 3:
+        hex_color = "".join([c*2 for c in hex_color])
+    if len(hex_color) != 6:
+        raise ValueError("Invalid hex color format")
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+    return (r, g, b, alpha)
+
+def generate_random_rgba_color(a):
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return (r, g, b, a)
+
 def blend_colors(c1, c2, alpha=0.5):
     r = int(int(c1[1:3], 16)*(1-alpha) + int(c2[1:3], 16)*alpha)
     g = int(int(c1[3:5], 16)*(1-alpha) + int(c2[3:5], 16)*alpha)
