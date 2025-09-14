@@ -39,11 +39,43 @@ import multiprocessing
 import time
 import argparse
 import json
+import csv
+
 
 
 def _calculate_fitness_helper(args):
     individual, reference_img = args
     return individual.calculate_fitness(reference_img)
+
+def _ensure_dir(path: str):
+    d = os.path.dirname(os.path.abspath(path))
+    if d and not os.path.exists(d):
+        os.makedirs(d, exist_ok=True)
+
+def _write_metrics_row(csv_path, row, write_header_if_needed=False):
+    _ensure_dir(csv_path)
+    file_exists = os.path.exists(csv_path)
+    with open(csv_path, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if write_header_if_needed and not file_exists:
+            w.writerow([
+                "generation",
+                "best_fitness",
+                "avg_fitness",
+                "worst_fitness",
+                "std_dev",
+                "mutation_rate",
+                "stagnation_counter",
+                "processes",
+                "population_size",
+                "n_polygons",
+                "fitness",
+                "selection",
+                "crossover",
+                "mutation",
+                "elapsed_sec",
+            ])
+        w.writerow(row)
 
 
 def main():
@@ -101,6 +133,9 @@ def main():
         raise SystemExit("Falta 'image_path' en el JSON.")
     if not os.path.exists(img_path):
         raise SystemExit(f"No se encontró la imagen en: {img_path}")
+    
+    metrics_csv = cfg.get("metrics_csv", "out/metrics.csv")
+    _ensure_dir(metrics_csv)
 
     target_img = Image.open(img_path).convert("RGB")
     width, height = target_img.size
@@ -174,9 +209,37 @@ def main():
     num_processes = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=num_processes)
 
+    t0 = time.time()
+
     tasks = population.prepare_fitness_tasks(target_array)
     results = pool.map(_calculate_fitness_helper, tasks)
     population.update_fitness_from_results(results)
+
+    # --- CSV: gen 0 ---
+    stats0 = population.get_statistics()
+    elapsed0 = time.time() - t0
+    _write_metrics_row(
+        metrics_csv,
+        [
+            stats0['generation'],
+            f"{stats0['best_fitness']:.10g}",
+            f"{stats0['average_fitness']:.10g}",
+            f"{stats0['worst_fitness']:.10g}",
+            f"{stats0['std_deviation']:.10g}",
+            f"{population.mutation_rate:.6g}",
+            0,                          # stagnation_counter (arranca en 0)
+            num_processes,              # usás cpu_count() para el Pool
+            stats0['population_size'],
+            n_polygons,
+            fitness_name,
+            selection_name,
+            crossover_name,
+            mutation_name,
+            f"{elapsed0:.3f}",
+        ],
+        write_header_if_needed=True
+    )
+
 
     # ------------------ plot en vivo ------------------
     if show_live:
@@ -200,6 +263,30 @@ def main():
         stats = population.get_statistics()
         current_best_fitness = stats['best_fitness']
         print(f"Gen {generation}: Best fitness = {current_best_fitness:.6f}")
+
+        # --- CSV: gen N ---
+        elapsedN = time.time() - t0
+        _write_metrics_row(
+            metrics_csv,
+            [
+                stats['generation'],
+                f"{stats['best_fitness']:.10g}",
+                f"{stats['average_fitness']:.10g}",
+                f"{stats['worst_fitness']:.10g}",
+                f"{stats['std_deviation']:.10g}",
+                f"{population.mutation_rate:.6g}",
+                stagnation_counter,
+                num_processes,
+                stats['population_size'],
+                n_polygons,
+                fitness_name,
+                selection_name,
+                crossover_name,
+                mutation_name,
+                f"{elapsedN:.3f}",
+            ]
+        )
+
 
         # anti-estancamiento
         if current_best_fitness <= best_fitness_last_gen:
@@ -231,7 +318,7 @@ def main():
     plt.ioff()
 
     # ------------------ guardar salida ------------------
-    output_image = cfg.get("output_image")
+    output_image = cfg.get("output_image", "out/best.png")
     if output_image:
         population.best_individual.render().save(output_image)
         print(f"Guardado: {output_image}")
