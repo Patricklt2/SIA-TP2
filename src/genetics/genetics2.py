@@ -78,7 +78,7 @@ def main():
     }
     replacement_map = {
         "traditional": traditional_selection,
-        "young_byass": young_bias_selection
+        "young_bias": young_bias_selection
     }
     crossover_map = {
         "single_point": single_point_crossover,
@@ -99,6 +99,7 @@ def main():
     target_array = np.array(target_img)
 
     n_polygons = int(cfg.get("n_polygons", 100))
+    n_vertices = int(cfg.get("n_vertices", 3))
 
     # ------------------ hiperparámetros ------------------
     pop_size = int(cfg.get("population_size", 100))
@@ -143,6 +144,7 @@ def main():
         width=width,
         height=height,
         n_polygons=n_polygons,
+        n_vertices=n_vertices,
         fitness_method=fitness_fn,
         mutation_method=mutation_fn,
         selection_method=selection_fn,
@@ -153,7 +155,8 @@ def main():
         seed_store=None,
         seed_frac=0.0,
         target_img=target_img,
-        crossover_method=crossover_fn
+        crossover_method=crossover_fn,
+        max_gen=max_generations
     )
 
     # ------------------ evaluación inicial (paralelo) ------------------

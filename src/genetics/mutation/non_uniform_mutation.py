@@ -71,7 +71,7 @@ def non_uniform_multi_gene_mutation(
             poly.color = tuple(rgba_list)
 
         elif mutation_type == 'random_color':
-            poly.color = generate_random_rgba_color()
+            poly.color = generate_random_rgba_color(poly.color[3])
 
         elif mutation_type == 'swap' and n_polygons > 1:
             swap_idx = rng.randrange(n_polygons)

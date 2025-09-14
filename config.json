@@ -1,8 +1,9 @@
 {
   "image_path": "banderas.jpg",
-  "n_polygons": 200,
+  "n_polygons": 10,
+  "n_vertices": 4,
 
-  "population_size": 120,
+  "population_size": 150,
   "mutation_rate": 0.12,
   "crossover_rate": 0.7,
   "elite_size": 8,
@@ -12,8 +13,8 @@
   "fitness": "mse",                 
   "mutation": "multi_gene",         
   "selection": "tournament",        
-  "replacement": "traditional",     
-  "crossover": "two_point",         
+  "replacement": "young_bias",     
+  "crossover": "uniform",         
 
   "stagnation_threshold": 30,
   "increased_mutation_rate": 0.24,

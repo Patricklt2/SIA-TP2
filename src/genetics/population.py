@@ -6,16 +6,17 @@ import numpy as np
 
 class Population:
     def __init__(self, population_size, width, height, n_polygons, fitness_method, 
-                 mutation_method, selection_method, replacement_method,
+                 mutation_method, selection_method, replacement_method, max_gen,
                  mutation_rate=0.05, crossover_rate=0.8, elite_size=1,
-                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover, 
-                 target_img = None):
+                 seed_store=None, seed_frac=0.0, crossover_method=single_point_crossover,
+                 target_img = None, n_vertices=3):
         self.population_size = population_size
         self.width = width
         self.height = height
         self.n_polygons = n_polygons
         self.fitness_method = fitness_method
         self.crossover_method = crossover_method
+        self.max_gen = max_gen
         if seed_store is not None:
             try:
                 from .mutation.seed_guided_mutation import make_seed_guided_mutation
@@ -42,7 +43,7 @@ class Population:
 
         n_random = population_size - len(self.individuals)
         self.individuals.extend([
-            Individual(width, height, n_polygons, fitness_method, mutation_method, target_img=self.target_img)
+            Individual(width, height, n_polygons, fitness_method, mutation_method, target_img=self.target_img, n_vertices=n_vertices)
             for _ in range(n_random)
         ])
         self.generation = 0
@@ -55,7 +56,8 @@ class Population:
         }
 
         if self.mutation_method == non_uniform_multi_gene_mutation:
-            mutation_args["max_generations"] = max_generations
+            self.mutation_args["max_generations"] = max_gen
+            self.mutation_args["current_generation"] = 1
 
     def prepare_fitness_tasks(self, reference_img):
         return [(individual, reference_img) for individual in self.individuals]
@@ -86,7 +88,7 @@ class Population:
         parents = self.selection_method(self.individuals, self.population_size - self.elite_size)
 
         if self.mutation_method == non_uniform_multi_gene_mutation:
-            mutation_args["current_generation"] = generation
+            self.mutation_args["current_generation"] = self.generation
 
         offspring = []
         for i in range(0, len(parents), 2):

@@ -13,12 +13,12 @@ from .utils import generate_random_hex_color
 # 
 # Each individual can render, calculate fitness, mutate and store its genome
 class Individual:
-    def __init__(self, width, height, n_polygons, fitness_method, mutation_method, target_img=None):
+    def __init__(self, width, height, n_polygons, fitness_method, mutation_method, target_img=None, n_vertices=3):
         self.width = width
         self.height = height
         self.fitness_method = fitness_method
         self.mutation_method = mutation_method
-        self.polygons = [Polygon.random(width, height, n_vertices=3, target_img=target_img) 
+        self.polygons = [Polygon.random(width, height, n_vertices, target_img=target_img) 
                          for _ in range(n_polygons)]
 
         self.fitness = float('inf')

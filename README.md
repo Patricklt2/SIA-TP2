@@ -44,7 +44,8 @@ Ejemplo mínimo (`config.json`):
 {
   "image_path": "entrada.jpg",
   "n_polygons": 120,
-
+  "n_vertices": 3,
+  
   "population_size": 120,
   "mutation_rate": 0.12,
   "crossover_rate": 0.7,

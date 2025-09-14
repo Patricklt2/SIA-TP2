@@ -32,7 +32,8 @@ class Polygon:
             y = random.randint(0, height - 1)
             r, g, b = target_img.getpixel((x, y))
 
-        a = random.randint(30, 100) 
+        a = 255
+       # a = random.randint(30, 100) 
         color = (r, g, b, a)
         
         return Polygon(vertices, color)
