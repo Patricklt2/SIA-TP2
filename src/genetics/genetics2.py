@@ -17,6 +17,7 @@ from .next_gen.young_bias_selection import young_bias_selection
 from .crossover.single_point_crossover import single_point_crossover
 from .crossover.two_point_crossover import two_point_crossover
 from .crossover.uniform_crossover import uniform_crossover
+from .crossover.circular_crossover import annular_crossover
 
 from .population import Population
 import numpy as np
@@ -72,12 +73,12 @@ def main():
     replacement_map = {
         "traditional": traditional_selection,
         "young_byass": young_bias_selection
-        # si agregás otros reemplazos, mapéalos acá
     }
     crossover_map = {
         "single_point": single_point_crossover,
         "two_point": two_point_crossover,
         "uniform": uniform_crossover,
+        "anular": annular_crossover
     }
 
     # ------------------ inputs obligatorios ------------------
