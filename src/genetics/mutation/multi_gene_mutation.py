@@ -15,7 +15,7 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
     if n_polygons == 0:
         return
 
-    n_mutations = max(1, int(n_polygons * random.uniform(0.1, 0.25)))
+    n_mutations = max(1, int(n_polygons * random.uniform(0.1, 0.34)))
     mutate_indices = np.random.choice(n_polygons, n_mutations, replace=False)
 
     for idx in mutate_indices:

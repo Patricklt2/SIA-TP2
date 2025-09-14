@@ -18,6 +18,7 @@ class Individual:
         self.height = height
         self.fitness_method = fitness_method
         self.mutation_method = mutation_method
+        self.n_vertices = n_vertices
         self.polygons = [Polygon.random(width, height, n_vertices, target_img=target_img) 
                          for _ in range(n_polygons)]
 

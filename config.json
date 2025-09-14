@@ -1,6 +1,6 @@
 {
-  "image_path": "starry_night.jpg",
-  "n_polygons": 120,
+  "image_path": "banderas.jpg",
+  "n_polygons": 60,
   "n_vertices": 4,
 
   "population_size": 120,
@@ -13,8 +13,8 @@
   "fitness": "mse",                 
   "mutation": "multi_gene",         
   "selection": "tournament",        
-  "replacement": "young_bias",     
-  "crossover": "artistic",         
+  "replacement": "traditional",     
+  "crossover": "two_point",         
 
   "stagnation_threshold": 30,
   "increased_mutation_rate": 0.24,

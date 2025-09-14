@@ -2,11 +2,11 @@ import random
 import numpy as np
 from src.genetics.individual import Individual
 from src.genetics.polygon import Polygon
+from PIL import Image
 
 # Would've dinosaur ender :)
 def doomsday_mutation(
     individual: Individual,
-    mutation_rate: float,
     target_img: Image,
     rng=None
 ):
