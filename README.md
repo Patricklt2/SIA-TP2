@@ -141,3 +141,25 @@ chmod +x run.sh
 - **Visualización**
   - `show_live` *(bool, default: `false`)*: actualiza ventana con la mejor imagen.
   - `plot_interval` *(int, default: `10`)*: cada cuántas generaciones refrescar el plot.
+
+## Visualización rápida del avance (best_fitness)
+
+El script `plot_fitness.py` grafica `best_fitness` vs `generation` y etiqueta cada curva con el **nombre del CSV**.
+
+### Windows (PowerShell)
+```powershell
+# activar venv
+.\venv\Scripts\Activate.ps1
+
+# graficar dos runs (rutas explícitas para evitar expansiones raras)
+python .\plot_fitness.py .\out\metrics.csv .\out\metrics2.csv
+```
+
+### Linux / macOS (bash)
+```bash
+# activar venv
+source venv/bin/activate
+
+# graficar dos runs
+python plot_fitness.py out/metrics.csv out/metrics2.csv
+```
