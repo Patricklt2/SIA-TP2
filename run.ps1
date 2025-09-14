@@ -1,43 +1,40 @@
-if (-not (Test-Path "venv")) {
-    Write-Host "Virtual environment not found. Run setup.ps1 first."
-    exit 1
+param(
+  [Parameter(Mandatory = $true)]
+  [ValidateNotNullOrEmpty()]
+  [string]$Config
+)
+
+# ----- paths -----
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$VenvPath   = Join-Path $ScriptRoot "venv"
+
+if (-not (Test-Path $VenvPath)) {
+  Write-Host "Virtual environment not found. Run setup.ps1 first."
+  exit 1
 }
 
-# Activate the virtual environment
-. .\venv\Scripts\Activate.ps1
+# activar venv
+. (Join-Path $VenvPath "Scripts\Activate.ps1")
 
-# Always use the venv’s Python
+# python del venv
 $PYTHON = Join-Path $env:VIRTUAL_ENV "Scripts\python.exe"
-
-# Debug: confirm which python is being used
 Write-Host "Python executable in use: " (& $PYTHON -c "import sys; print(sys.executable)")
-Write-Host "VIRTUAL_ENV: $env:VIRTUAL_ENV"
 
-$WORKERS = $null
-
-if ($args.Count -gt 0 -and ($args[0] -eq "-w" -or $args[0] -eq "--workers")) {
-    if ($args.Count -gt 1 -and $args[1] -match '^\d+$') {
-        $WORKERS = [int]$args[1]
-    } else {
-        try {
-            $NCPU = (Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
-        } catch {
-            $NCPU = 1
-        }
-
-        if ($NCPU -gt 1) {
-            $WORKERS = $NCPU - 1
-        } else {
-            $WORKERS = 1
-        }
-    }
-
-    if (-not $env:TILE_SIZE) { $env:TILE_SIZE = 8 }
-    if (-not $env:IMAGE) { $env:IMAGE = "monalisa.webp" }
-
-    Write-Host "Starting run_with_workers via main(): workers=$WORKERS, tile_size=$env:TILE_SIZE, image=$env:IMAGE"
-    $env:WORKERS = $WORKERS
-    & $PYTHON -m src.genetics.genetics
-} else {
-    & $PYTHON -m src.genetics.genetics
+# resolver ruta del config por si llaman desde otro cwd
+if (-not (Test-Path $Config)) {
+  $Resolved = Join-Path $ScriptRoot $Config
+  if (Test-Path $Resolved) {
+    $Config = $Resolved
+  }
 }
+
+if (-not (Test-Path $Config)) {
+  Write-Error "Config file not found: $Config
+Uso: .\run.ps1 -Config .\src\configs\config.json"
+  exit 1
+}
+
+Write-Host "Using config: $Config"
+
+# ejecutar genetics2 con --config
+& $PYTHON -m src.genetics.genetics --config $Config
