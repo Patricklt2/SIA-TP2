@@ -1,0 +1,23 @@
+{
+  "image_path": "banderas.jpg",
+  "n_polygons": 120,
+
+  "population_size": 50,
+  "mutation_rate": 0.12,
+  "crossover_rate": 0.7,
+  "elite_size": 8,
+  "max_generations": 5000,
+  "stop_fitness": 0.92,
+
+  "fitness": "mse",                 
+  "mutation": "multi_gene",         
+  "selection": "tournament",        
+  "replacement": "traditional",     
+  "crossover": "two_point",         
+
+  "stagnation_threshold": 30,
+  "increased_mutation_rate": 0.24,
+
+  "output_image": "out/best.png",
+  "show_plot": true
+}

@@ -89,7 +89,7 @@ class Population:
                 child2.mutate(self.mutation_rate, self.target_img)
                 offspring.extend([child1, child2])
 
-        new_population = self.replacement_method(self.individuals, offspring, self.elite_size)
+        new_population = self.replacement_method(self.individuals, offspring)
 
         self.individuals = new_population
         self.generation += 1

@@ -12,7 +12,8 @@ from .selection.ruleta import roulette_selection
 from .selection.universal import stochastic_universal_sampling
 from .selection.boltzmann import boltzmann_selection
 from .selection.ranking import ranking_selection
-from .next_gen.traditional_selection import traditional_replacement
+from .next_gen.traditional_selection import traditional_selection
+from .next_gen.young_bias_selection import young_bias_selection
 from .crossover.single_point_crossover import single_point_crossover
 from .crossover.two_point_crossover import two_point_crossover
 from .crossover.uniform_crossover import uniform_crossover
@@ -69,7 +70,8 @@ def main():
 
     }
     replacement_map = {
-        "traditional": traditional_replacement,
+        "traditional": traditional_selection,
+        "young_byass": young_bias_selection
         # si agregás otros reemplazos, mapéalos acá
     }
     crossover_map = {
