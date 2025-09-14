@@ -51,7 +51,7 @@ Esto crea el **venv** y instala dependencias.
 Ejemplo mínimo (`config.json`):
 ```json
 {
-  "image_path": "data/target.jpg",
+  "image_path": "target.jpg",
   "n_polygons": 120,
   "n_vertices": 3,
 
