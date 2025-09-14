@@ -19,10 +19,8 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
     n_mutations = max(1, int(n_polygons * random.uniform(0.1, 0.25)))
     mutate_indices = np.random.choice(n_polygons, n_mutations, replace=False)
 
-    # Define the mutation types and their probabilities
-    # These probabilities must sum to 1.0
-    mutation_types = ['vertex', 'color', 'alpha', 'swap']
-    probabilities = [0.6, 0.2, 0.1, 0.1]
+    mutation_types = ['vertex', 'image_color', 'alpha', 'swap', 'random_color']
+    probabilities = [0.55, 0.2, 0.1, 0.1, 0.05]
 
     for idx in mutate_indices:
         mutation_type = random.choices(mutation_types, weights=probabilities, k=1)[0]
@@ -38,7 +36,7 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
                 vertices[:, 1] = np.clip(vertices[:, 1], 0, individual.height)
                 poly.vertices = [tuple(v) for v in vertices]
 
-        elif mutation_type == 'color':
+        elif mutation_type == 'image_color':
             if poly.vertices:
                 all_x = [v[0] for v in poly.vertices]
                 all_y = [v[1] for v in poly.vertices]
@@ -71,3 +69,10 @@ def multi_gene_mutation(individual: Individual, mutation_rate: float, target_img
         elif mutation_type == 'swap':
             swap_idx = random.randrange(n_polygons)
             polygons[idx], polygons[swap_idx] = polygons[swap_idx], polygons[idx]
+
+        elif mutation_type == 'random_color':
+        random_rgb = generate_random_hex_color()
+    
+        current_alpha = poly.color[3]
+        
+        poly.color = (random_rgb[0], random_rgb[1], random_rgb[2], current_alpha)
