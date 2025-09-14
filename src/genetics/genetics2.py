@@ -109,6 +109,9 @@ def main():
     n_polygons = int(cfg.get("n_polygons", 100))
     n_vertices = int(cfg.get("n_vertices", 3))
 
+    show_live = bool(cfg.get("show_live", False)) 
+    plot_interval = int(cfg.get("plot_interval", 10))
+
     # ------------------ hiperparámetros ------------------
     pop_size = int(cfg.get("population_size", 100))
     mutation_rate = float(cfg.get("mutation_rate", 0.1))
@@ -176,11 +179,12 @@ def main():
     population.update_fitness_from_results(results)
 
     # ------------------ plot en vivo ------------------
-    plt.ion()
-    fig, ax = plt.subplots()
-    best_image = population.best_individual.render()
-    img_display = ax.imshow(best_image)
-    ax.set_title("Best individual")
+    if show_live:
+        plt.ion()
+        fig, ax = plt.subplots()
+        best_image = population.best_individual.render()
+        img_display = ax.imshow(best_image)
+        ax.set_title("Best individual")
 
     stagnation_counter = 0
     best_fitness_last_gen = 0.0
@@ -212,9 +216,10 @@ def main():
         best_fitness_last_gen = current_best_fitness
 
         # actualizar preview
-        best_image = population.best_individual.render()
-        img_display.set_data(np.array(best_image))
-        plt.pause(0.001)
+        if show_live and (generation % plot_interval == 0):
+            best_image = population.best_individual.render()
+            img_display.set_data(np.array(best_image))
+            plt.pause(0.001)
 
         # criterio de corte
         if current_best_fitness >= stop_fitness:
@@ -231,9 +236,7 @@ def main():
         population.best_individual.render().save(output_image)
         print(f"Guardado: {output_image}")
 
-    # mostrar figura si se desea
-    if bool(cfg.get("show_plot", True)):
-        plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
