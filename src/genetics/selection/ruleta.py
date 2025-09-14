@@ -3,10 +3,6 @@ import numpy as np
 import bisect
 
 def roulette_selection(population, num_selected, rng=None):
-    """Fitness-proportionate (roulette wheel) selection.
-    population: iterable of individuals with .fitness (higher = better)
-    Returns list of selected individuals (may contain duplicates).
-    """
     if rng is None:
         rng = random.Random()
 

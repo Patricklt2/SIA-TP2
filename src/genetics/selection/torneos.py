@@ -2,13 +2,6 @@ import random
 
 
 def tournament_selection(population, num_selected, k=3, replacement=True, rng=None):
-    """Tournament selection.
-    population: iterable of individuals with .fitness (higher better)
-    k: tournament size
-    replacement: if True, sampling for each tournament is with replacement
-    rng: optional random.Random instance
-    Returns list of selected individuals (parents), length = num_selected.
-    """
     if rng is None:
         rng = random.Random()
 
@@ -32,19 +25,6 @@ def tournament_selection(population, num_selected, k=3, replacement=True, rng=No
 
 
 def probabilistic_tournament_selection(population, num_selected, k=3, p=0.75, replacement=True, rng=None):
-    """Probabilistic tournament selection.
-    For each tournament, sample k competitors, sort them by fitness (best first).
-    Select the i-th best with probability p*(1-p)^(i-1), falling back to the last competitor.
-    Args:
-        population: iterable of individuals with .fitness
-        num_selected: number of parents to select
-        k: tournament size
-        p: probability of selecting the best in the tournament (0 < p <= 1)
-        replacement: sample competitors with replacement if True
-        rng: optional random.Random instance
-    Returns:
-        list of selected individuals (length = num_selected)
-    """
     if rng is None:
         rng = random.Random()
 

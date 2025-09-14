@@ -4,7 +4,6 @@ import math
 import bisect
 
 def boltzmann_selection(population, num_selected, T=1.0, rng=None):
-    """Boltzmann selection using temperature T. Higher T -> more uniform, lower T -> stronger selection."""
     if rng is None:
         rng = random.Random()
 

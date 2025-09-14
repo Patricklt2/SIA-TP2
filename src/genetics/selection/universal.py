@@ -3,7 +3,6 @@ import numpy as np
 import bisect
 
 def stochastic_universal_sampling(population, num_selected, rng=None):
-    """Stochastic Universal Sampling (SUS). Returns list of selected individuals (can contain duplicates)."""
     if rng is None:
         rng = random.Random()
 

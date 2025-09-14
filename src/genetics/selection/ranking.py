@@ -3,7 +3,6 @@ import numpy as np
 import bisect
 
 def ranking_selection(population, num_selected, rng=None):
-    """Rank-based selection: assign weights proportional to rank (1..N), higher fitness -> higher rank weight."""
     if rng is None:
         rng = random.Random()
 
