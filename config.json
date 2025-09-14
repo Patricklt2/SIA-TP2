@@ -1,7 +1,7 @@
 {
   "image_path": "banderas.jpg",
   "n_polygons": 60,
-  "n_vertices": 4,
+  "n_vertices": 3,
 
   "population_size": 120,
   "mutation_rate": 0.12,
