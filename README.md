@@ -80,14 +80,13 @@ Ejemplo mínimo (`config.json`):
 }
 ```
 
-> **Obligatorios:** `image_path`, `n_polygons`.  
+> **Obligatorio:** `image_path`.  
 > El resto tiene *defaults* razonables si se omiten.
 
 ### 2) Correr
 
 **Windows (PowerShell)**
 ```powershell
-# usa siempre el venv y pasa el --config
 .\run.ps1 -Config ".\config.json"
 ```
 
