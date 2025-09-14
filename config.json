@@ -7,7 +7,7 @@
   "mutation_rate": 0.12,
   "crossover_rate": 0.7,
   "elite_size": 8,
-  "max_generations": 5000,
+  "max_generations": 50,
   "stop_fitness": 0.92,
 
   "fitness": "mse",                 
@@ -20,5 +20,6 @@
   "increased_mutation_rate": 0.24,
 
   "output_image": "best.png",
-  "show_plot": true
+  "show_live": false,       
+  "plot_interval": 10
 }
