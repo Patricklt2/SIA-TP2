@@ -1,12 +1,12 @@
 {
   "tiled":true,
   "save_previews":true,
-  "render_mode":"compat",
+  "render_mode":"fast",
   "use_gpu":true,
   "tile_size": 16,
 
   "image_path": "starry_night.jpg",
-  "n_polygons": 60,
+  "n_polygons": 10,
   "n_vertices": 3,
 
   "population_size": 120,
@@ -16,16 +16,18 @@
   "max_generations": 2000,
   "stop_fitness": 0.92,
 
-  "fitness": "mse",                 
-  "mutation": "multi_gene",         
-  "selection": "tournament",        
-  "replacement": "traditional",     
-  "crossover": "two_point",         
+  "fitness": "mse",
+  "mutation": "multi_gene",
+  "selection": "tournament",
+  "replacement": "traditional",
+  "crossover": "two_point",
 
   "stagnation_threshold": 30,
-  "increased_mutation_rate": 0.24,
+  "original_mutation_rate": 0.12,
+  "increased_mutation_rate": 0.48,
 
-  "output_image": "best.png",
   "show_live": true,       
-  "plot_interval": 10
+  "plot_interval": 10,
+  "metrics_csv": "out/metrics2.csv",
+  "output_image": "out/best.png"
 }
