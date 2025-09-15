@@ -1,13 +1,13 @@
 {
   "tiled":true,
   "save_previews":true,
-  "render_mode":"fast",
+  "render_mode":"compat",
   "use_gpu":true,
-  "tile_size": 16,
+  "tile_size": 50,
 
   "image_path": "starry_night.jpg",
   "n_polygons": 10,
-  "n_vertices": 3,
+  "n_vertices": 6,
 
   "population_size": 120,
   "mutation_rate": 0.12,

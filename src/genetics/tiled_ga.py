@@ -48,7 +48,8 @@ def _run_tile_worker(args) -> Tuple[int, int, Image.Image]:
         seed_store=None,
         seed_frac=0.0,
         target_img=target_img,
-        crossover_method=two_point_crossover
+        crossover_method=two_point_crossover,
+        n_vertices=cfg.get('n_vertices', 3)
     )
 
     _eval_population(pop, tile_np)
@@ -84,6 +85,7 @@ def main():
     ap.add_argument('--out', default='out/tiled_best.png', help='Output path for composed image')
     ap.add_argument('--processes', type=int, default=0, help='Parallel processes (0 => sequential)')
     ap.add_argument('--polys-per-tile', type=int, default=60, help='Polygons per tile')
+    ap.add_argument('--vertx', type=int, default=3, help='Vertices per poligon')
     ap.add_argument('--pop', type=int, default=40, help='Population per tile')
     ap.add_argument('--gens', type=int, default=400, help='Generations per tile')
     ap.add_argument('--elite', type=int, default=6, help='Elite size per tile')
@@ -108,6 +110,7 @@ def main():
         'mutation_rate': args.mut,
         'crossover_rate': args.cross,
         'stop_fitness': 0.98,
+        'n_vertices': args.vertx
     }
 
     tasks = []
@@ -187,8 +190,10 @@ def main():
                 seed_store=None,
                 seed_frac=0.0,
                 target_img=timg,
-                crossover_method=two_point_crossover
+                crossover_method=two_point_crossover,
+                n_vertices=cfg.get('n_vertices', 3)
             )
+
             tile_objs.append((x0, y0, tile_np, pop))
 
         # Initial eval

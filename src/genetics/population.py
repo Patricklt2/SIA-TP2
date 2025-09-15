@@ -14,6 +14,7 @@ class Population:
         self.width = width
         self.height = height
         self.n_polygons = n_polygons
+        self.n_vertices = n_vertices
         self.fitness_method = fitness_method
         self.crossover_method = crossover_method
         self.max_gen = max_gen

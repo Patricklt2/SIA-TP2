@@ -52,6 +52,7 @@ if ($Tiled) {
   $procs  = if ($cfg.tile_threads) { [int]$cfg.tile_threads } else { 0 }
   $out    = if ($cfg.output_image) { [string]$cfg.output_image } else { "out/tiled_best.png" }
   $polys  = if ($cfg.n_polygons) { [int]$cfg.n_polygons } else { 60 }
+  $vertx  = if ($cfg.n_vertices) { [int]$cfg.n_vertices } else { 3 }
   $pop    = if ($cfg.population_size) { [int]$cfg.population_size } else { 40 }
   $gens   = if ($cfg.max_generations) { [int]$cfg.max_generations } else { 400 }
   $elite  = if ($cfg.elite_size) { [int]$cfg.elite_size } else { 6 }
@@ -76,7 +77,8 @@ if ($Tiled) {
     '--gens',  $gens,
     '--elite', $elite,
     '--mut',   $mut,
-    '--cross', $cross
+    '--cross', $cross,
+    '--vertx', $vertx
   )
   if ($procs -gt 0) { $argsList += @('--processes', $procs) }
   if ($preview) { $argsList += @('--preview', '--preview-interval', $pint) }
