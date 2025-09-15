@@ -87,11 +87,58 @@ Ejemplo mínimo (`config.json`):
 
 ---
 
+## Modo por tiles (tiled_ga)
+
+Podés dividir la imagen en una grilla de tiles y ejecutar un AG por tile. Esto permite paralelizar y mejorar detalle local.
+
+Ejemplos con los runners:
+- PowerShell (Windows): `./run.ps1 -Config .\config.json -Tiled`
+- Bash/WSL: `./run2.sh --config ./config.json --tiled`
+
+Claves de `config.json` que usan los runners en modo tiled:
+- `tile_size`: tamaño del tile en px (ej. 64, 96, 128)
+- `tile_threads`: 0 = secuencial (preview por generación); >0 = procesos en paralelo
+- `n_polygons`, `population_size`, `max_generations`, `elite_size`, `mutation_rate`, `crossover_rate` (por‑tile)
+- `show_live` o `tile_preview`: muestra la ventana de preview
+- `plot_interval` o `tile_preview_interval`: frecuencia de actualización del preview
+- `output_image`: ruta del PNG compuesto final
+
+Notas útiles:
+- Secuencial (`tile_threads: 0`) muestra la imagen evolucionando cada `plot_interval` generaciones.
+- Sin tiles, elevar n-polygons.
+Llamada directa (sin runner):
+```
+python -m src.genetics.tiled_ga \
+  --image entrada.jpg --tile 96 --processes 4 \
+  --polys-per-tile 60 --pop 40 --gens 400 \
+  --pad 6 --stop 2.0 --epochs 3 --preview
+```
+
+---
+
+## Modos de render (rápido vs compatibilidad)
+
+El render de cada individuo puede hacerse de dos formas equivalentes visualmente:
+- `fast` (default): dibuja todos los polígonos sobre un único lienzo RGBA (mucho más rápido).
+- `compat`: ruta “clásica”, compone cada polígono como una capa temporal con `alpha_composite`.
+
+Seleccionás el modo desde `config.json` y los runners lo aplican automáticamente:
+- `"render_mode": "fast"` | `"compat"`
+- (legacy) `"use_fast_render": true|false`
+
+No hace falta setear variables de entorno manualmente si usás los runners.
+
+---
+
 ## Salidas
 
 - **Preview en vivo** de la mejor solución (si `show_plot: true`).
 - **Imagen final** guardada en `output_image` (si lo definís en el JSON).
 - Log por consola con `Best fitness` por generación.
+
+En modo tiled:
+- Secuencial: preview cada `plot_interval` generaciones.
+- Paralelo: preview cuando se completan tiles (cada `tile_preview_interval`).
 
 ---
 
@@ -113,4 +160,5 @@ Ejemplo mínimo (`config.json`):
   - `stagnation_threshold`, `increased_mutation_rate`
 - **Visualización / salida**
   - `show_plot` (true/false), `output_image`
-
+  - tiled: `tile_size`, `tile_threads`, `tile_preview`/`show_live`, `tile_preview_interval`/`plot_interval`
+  - render: `render_mode`: `fast` | `compat` (o `use_fast_render`)

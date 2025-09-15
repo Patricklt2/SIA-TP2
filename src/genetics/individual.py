@@ -1,3 +1,4 @@
+import os
 import random
 import numpy as np
 from PIL import Image, ImageDraw
@@ -29,17 +30,27 @@ class Individual:
         if use_cache and self.img is not None:
             return self.img
 
-        canvas = Image.new("RGBA", (self.width, self.height), (255, 255, 255, 255))
-        for poly in self.polygons:
-            temp_layer = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
-            temp_draw = ImageDraw.Draw(temp_layer)
-
-            temp_draw.polygon(poly.vertices, fill=poly.color)
-            canvas = Image.alpha_composite(canvas, temp_layer)
-
-        canvas_rgb = canvas.convert("RGB")
-        self.img = canvas_rgb
-        return self.img
+        # Render mode switch via environment variable GEN_RENDER_MODE
+        # Allowed values: "fast" (default) or "compat" (old per-polygon composite)
+        mode = os.environ.get("GEN_RENDER_MODE", "fast").lower()
+        if mode == "compat":
+            # Old path: per-polygon temp + alpha composite
+            canvas = Image.new("RGBA", (self.width, self.height), (255, 255, 255, 255))
+            for poly in self.polygons:
+                temp_layer = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
+                temp_draw = ImageDraw.Draw(temp_layer)
+                temp_draw.polygon(poly.vertices, fill=poly.color)
+                canvas = Image.alpha_composite(canvas, temp_layer)
+            self.img = canvas.convert("RGB")
+            return self.img
+        else:
+            # Fast single-canvas draw: draw polygons directly onto one RGBA canvas
+            canvas = Image.new("RGBA", (self.width, self.height), (255, 255, 255, 255))
+            draw = ImageDraw.Draw(canvas)
+            for poly in self.polygons:
+                draw.polygon(poly.vertices, fill=poly.color)
+            self.img = canvas.convert("RGB")
+            return self.img
 
     def calculate_fitness(self, reference_img_array, use_cache=True):
         if use_cache and self.fitness != float('inf'):
