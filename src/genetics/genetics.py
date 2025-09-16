@@ -9,6 +9,8 @@ from .mutation.multi_gene_mutation import multi_gene_mutation
 from .mutation.seed_guided_mutation import make_seed_guided_mutation
 from .mutation.non_uniform_mutation import non_uniform_multi_gene_mutation
 from .mutation.doomsday_mutation import doomsday_mutation
+from .mutation.uniform_mutation import uniform_multi_gene_mutation
+from .mutation.focused_point_mutation import focused_point_mutation
 
 from .selection.elite import elite_selection
 from .selection.torneos import tournament_selection
@@ -101,7 +103,9 @@ def main():
         "multi_gene": multi_gene_mutation,
         "seed_guided": make_seed_guided_mutation,
         "non_uniform_multigen": non_uniform_multi_gene_mutation,
-        "doomsday": doomsday_mutation
+        "doomsday": doomsday_mutation,
+        "uniform": uniform_multi_gene_mutation,
+        "focused": focused_point_mutation
     }
 
     selection_map = {

@@ -7,6 +7,7 @@ from PIL import Image
 # Would've dinosaur ender :)
 def doomsday_mutation(
     individual: Individual,
+    mutation_rate: float,
     target_img: Image,
     rng=None
 ):

@@ -17,7 +17,7 @@
   "stop_fitness": 0.92,
 
   "fitness": "mse",
-  "mutation": "multi_gene",
+  "mutation": "uniform",
   "selection": "tournament",
   "replacement": "traditional",
   "crossover": "two_point",

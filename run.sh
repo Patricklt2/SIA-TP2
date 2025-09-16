@@ -141,6 +141,7 @@ PY
     --elite "$ELITE"
     --mut "$MUT"
     --cross "$CROSS"
+    --vertx "$vertx"
   )
   if (( PROCS > 0 )); then
     ARGS+=( --processes "$PROCS" )
