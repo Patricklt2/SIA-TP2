@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 
 # Valores por defecto por categoría (coinciden con tu JSON)
 DEFAULTS = {
-    "fitness":   ["mse", "ssim", "mixed", "mixed_mse_ssim", "deltaE"],
+    "fitness":   ["mse", "ssim", "mixed", "mixed_mse_ssim_deltae", "deltaE"],
     "mutation":  ["single_gene", "multi_gene", "seed_guided", "non_uniform_multigen", "doomsday", "uniform", "focused"],
     "selection": ["elite","tournament","roulette","universal","boltzmann","ranking"],
     "replacement": ["traditional","young_bias"],
