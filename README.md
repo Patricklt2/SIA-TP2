@@ -165,7 +165,6 @@ En modo tiled:
 - **`stagnation_threshold`** *(int, default: `20`)*: Número de generaciones sin mejora del mejor fitness para considerar estancamiento.
 - **`original_mutation_rate`** *(float, default: `mutation_rate`)*: Tasa de mutación “normal” a la que se vuelve cuando hay mejora.
 - **`increased_mutation_rate`** *(float, default: `mutation_rate * 4`)*: Tasa de mutación que se aplica **al detectar estancamiento**.  
-  > Tip: también podés combinar con operadores de “mutación fuerte” o con “inmigración” de individuos aleatorios para recuperar diversidad.
 
 ### Tiling (si tu runner/ejecución por tiles está activo)
 - **`tile_size`** *(int)*: Tamaño del **tile** en píxeles cuando se divide la imagen en una grilla. Valores típicos: 64, 96, 128.  
