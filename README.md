@@ -230,3 +230,33 @@ source venv/bin/activate
 # graficar dos runs
 python plot_fitness.py out/metrics.csv out/metrics2.csv
 ```
+
+## Comparación de métodos 
+
+**Compara** una categoría (`fitness` / `mutation` / `selection` / `replacement` / `crossover`).  
+Para cada valor corre *N* repeticiones, guarda **CSV + imagen final por repetición**, y genera **barras (media ± desvío)** de fitness final y tiempo total.
+
+### Uso
+
+**Linux/mac/WSL**
+```bash
+source venv/bin/activate
+python compare_vary.py --config ./configs/config.json --vary selection --reps 5 --save
+```
+
+**PowerShell (Windows)**
+```powershell
+.\venv\Scripts\Activate.ps1
+python .\compare_vary.py --config .\configs\config.json --vary selection --reps 5 --save
+```
+
+### Parámetros
+
+| Flag | Descripción | Ejemplo |
+|---|---|---|
+| `--config` | Ruta al JSON base. | `--config ./configs/config.json` |
+| `--vary` | Categoría a variar: `fitness` \| `mutation` \| `selection` \| `replacement` \| `crossover`. | `--vary crossover` |
+| `--values` | Lista de valores (coma-separada). Si no se pasa, usa todos. | `--values single_point,two_point,uniform` |
+| `--reps` | Repeticiones por valor. | `--reps 5` |
+| `--outdir` | Carpeta raíz de resultados. Por defecto: `./compare/<categoría>`. | `--outdir ./resultados/crossover` |
+| `--save` | Si está presente, guarda los gráficos en PNG. | `--save` |
