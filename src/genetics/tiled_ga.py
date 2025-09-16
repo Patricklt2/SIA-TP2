@@ -1,11 +1,43 @@
 import os
 import argparse
+import json
 import multiprocessing as mp
 from typing import Tuple, List
-
+import time
 import numpy as np
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
+
+from .fitness.mse import mse_fitness
+from .fitness.ssim import ssim_fitness
+from .fitness.mixed_fitness import mixed_fitness
+from .fitness.mixed_mse_ssim_deltae import mixed_fitness_mse_ssim_deltaE
+from .fitness.deltaE import delta_e_fitness
+
+
+from .mutation.single_gene_mutation import single_gene_mutation
+from .mutation.multi_gene_mutation import multi_gene_mutation
+from .mutation.seed_guided_mutation import make_seed_guided_mutation
+from .mutation.non_uniform_mutation import non_uniform_multi_gene_mutation
+from .mutation.doomsday_mutation import doomsday_mutation
+from .mutation.uniform_mutation import uniform_multi_gene_mutation
+from .mutation.focused_point_mutation import focused_point_mutation
+
+from .selection.elite import elite_selection
+from .selection.torneos import tournament_selection
+from .selection.ruleta import roulette_selection
+from .selection.universal import stochastic_universal_sampling
+from .selection.boltzmann import boltzmann_selection
+from .selection.ranking import ranking_selection
+
+from .next_gen.traditional_selection import traditional_selection
+from .next_gen.young_bias_selection import young_bias_selection
+
+from .crossover.single_point_crossover import single_point_crossover
+from .crossover.two_point_crossover import two_point_crossover
+from .crossover.uniform_crossover import uniform_crossover
+from .crossover.circular_crossover import annular_crossover
+from .crossover.artistic_crossover import artistic_crossover
 
 from .population import Population
 from .fitness.mse import mse_fitness
@@ -25,48 +57,6 @@ def _eval_population(pop: Population, target_np: np.ndarray) -> None:
     results = [ind.calculate_fitness(target_np) for ind, _ in tasks]
     pop.update_fitness_from_results(results)
 
-
-def _run_tile_worker(args) -> Tuple[int, int, Image.Image]:
-    (tile_id, x0, y0, x1, y1, tile_np, cfg) = args
-
-    h, w = tile_np.shape[:2]
-    target_img = Image.fromarray(tile_np)
-
-    pop = Population(
-        population_size=cfg.get('population_size', 40),
-        width=w,
-        height=h,
-        n_polygons=cfg.get('polygons_per_tile', 60),
-        fitness_method=mse_fitness,
-        mutation_method=multi_gene_mutation,
-        selection_method=ranking_selection,
-        replacement_method=traditional_selection,
-        max_gen=int(cfg.get('generations', 400)),
-        mutation_rate=cfg.get('mutation_rate', 0.10),
-        crossover_rate=cfg.get('crossover_rate', 0.70),
-        elite_size=cfg.get('elite_size', 6),
-        seed_store=None,
-        seed_frac=0.0,
-        target_img=target_img,
-        crossover_method=two_point_crossover,
-        n_vertices=cfg.get('n_vertices', 3)
-    )
-
-    _eval_population(pop, tile_np)
-
-    max_gens = int(cfg.get('generations', 400))
-    stop_fit = float(cfg.get('stop_fitness', 0.90))
-
-    for _ in range(max_gens):
-        pop.create_next_generation()
-        _eval_population(pop, tile_np)
-        if pop.best_individual and pop.best_individual.fitness >= stop_fit:
-            break
-
-    best_img = pop.best_individual.render()
-    return (x0, y0, best_img)
-
-
 def _tiles_for_image(width: int, height: int, tile_size: int) -> List[Tuple[int, int, int, int]]:
     boxes = []
     for y in range(0, height, tile_size):
@@ -78,40 +68,101 @@ def _tiles_for_image(width: int, height: int, tile_size: int) -> List[Tuple[int,
     return boxes
 
 
+# --- mapas de nombre->función (según lo implementado) ---
+fitness_map = {
+    "mse": mse_fitness,
+    "ssim": ssim_fitness,
+    "mixed": mixed_fitness,
+    "mixed_mse_ssim_deltae": mixed_fitness_mse_ssim_deltaE,
+    "deltaE": delta_e_fitness,
+}
+
+mutation_map = {
+    "single_gene": single_gene_mutation,
+    "multi_gene": multi_gene_mutation,
+    "seed_guided": make_seed_guided_mutation,
+    "non_uniform_multigen": non_uniform_multi_gene_mutation,
+    "doomsday": doomsday_mutation,
+    "uniform": uniform_multi_gene_mutation,
+    "focused": focused_point_mutation
+}
+
+selection_map = {
+    "elite": elite_selection,
+    "tournament": tournament_selection,
+    "roulette": roulette_selection,
+    "universal": stochastic_universal_sampling,
+    "boltzmann": boltzmann_selection,
+    "ranking": ranking_selection,
+
+}
+
+replacement_map = {
+    "traditional": traditional_selection,
+    "young_bias": young_bias_selection
+}
+
+crossover_map = {
+    "single_point": single_point_crossover,
+    "two_point": two_point_crossover,
+    "uniform": uniform_crossover,
+    "anular": annular_crossover,
+    "artistic": artistic_crossover
+}
+
 def main():
     ap = argparse.ArgumentParser(description='Tile-based GA renderer (parallel-friendly).')
-    ap.add_argument('--image', required=True, help='Path to input image')
-    ap.add_argument('--tile', type=int, default=64, help='Tile size (pixels)')
-    ap.add_argument('--out', default='out/tiled_best.png', help='Output path for composed image')
-    ap.add_argument('--processes', type=int, default=0, help='Parallel processes (0 => sequential)')
-    ap.add_argument('--polys-per-tile', type=int, default=60, help='Polygons per tile')
-    ap.add_argument('--vertx', type=int, default=3, help='Vertices per poligon')
-    ap.add_argument('--pop', type=int, default=40, help='Population per tile')
-    ap.add_argument('--gens', type=int, default=400, help='Generations per tile')
-    ap.add_argument('--elite', type=int, default=6, help='Elite size per tile')
-    ap.add_argument('--mut', type=float, default=0.10, help='Mutation rate')
-    ap.add_argument('--cross', type=float, default=0.70, help='Crossover rate')
-    ap.add_argument('--preview', action='store_true', help='Show live composite while tiles finish')
-    ap.add_argument('--preview-interval', type=int, default=8, help='Update preview every N tiles completed')
-    ap.add_argument('--preview-save-dir', default='out/previews', help='If GUI not available, save previews here')
+    ap.add_argument('--config', help='Path to JSON config (overrides CLI defaults)')
+ 
     args = ap.parse_args()
 
-    img = Image.open(args.image).convert('RGB')
+    # Load config JSON if provided and prefer its values
+    cfg_json = {}
+    if args.config:
+        with open(args.config, 'r', encoding='utf-8') as f:
+            cfg_json = json.load(f) or {}
+
+    render_mode = cfg_json.get('render_mode')
+    if render_mode is None and cfg_json.get('use_fast_render') is not None:
+        render_mode = 'fast' if bool(cfg_json.get('use_fast_render')) else 'compat'
+    if render_mode:
+        os.environ['GEN_RENDER_MODE'] = str(render_mode)
+
+    # Resolve inputs with config taking precedence
+    image_path = cfg_json.get('image_path')
+    if not image_path:
+        raise SystemExit("Missing input image. Provide --image or config.image_path")
+
+    tile_size = int(cfg_json.get('tile_size', 64))
+    out_path = str(cfg_json.get('output_image', 'out/tiled_best.png'))
+    # preview flags: allow either tile_preview or show_live in config
+    cfg_preview = bool(cfg_json.get('tile_preview', cfg_json.get('show_live', False)))
+    preview_flag = bool(cfg_preview)
+    preview_interval = int(cfg_json.get('tile_preview_interval', cfg_json.get('plot_interval', 8)))
+    preview_save_dir = cfg_json.get('preview_save_dir', 'out/previews')
+    save_previews = bool(cfg_json.get('save_previews', True))
+
+    img = Image.open(image_path).convert('RGB')
     W, H = img.size
     full_np = np.asarray(img)
 
-    boxes = _tiles_for_image(W, H, args.tile)
+    boxes = _tiles_for_image(W, H, tile_size)
 
-    cfg = {
-        'population_size': args.pop,
-        'polygons_per_tile': args.polys_per_tile,
-        'generations': args.gens,
-        'elite_size': args.elite,
-        'mutation_rate': args.mut,
-        'crossover_rate': args.cross,
-        'stop_fitness': 0.98,
-        'n_vertices': args.vertx
-    }
+    # Merge JSON config with CLI fallbacks
+    cfg = dict(cfg_json)
+    cfg.setdefault('population_size', 40)
+    cfg.setdefault('polygons_per_tile', cfg.get('n_polygons', 60))
+    cfg.setdefault('generations', cfg.get('max_generations', 400))
+    cfg.setdefault('elite_size', 6)
+    cfg.setdefault('mutation_rate', 0.10)
+    cfg.setdefault('crossover_rate', 0.70)
+    cfg.setdefault('stop_fitness', cfg_json.get('stop_fitness', 0.98))
+    cfg.setdefault('n_vertices', cfg.get('n_vertices', 3))
+    cfg.setdefault('fitness', cfg_json.get('fitness', 'mse'))
+    cfg.setdefault('mutation', cfg_json.get('mutation', 'multi_gene'))
+    cfg.setdefault('selection', cfg_json.get('selection', 'ranking'))
+    cfg.setdefault('replacement', cfg_json.get('replacement', 'traditional'))
+    cfg.setdefault('crossover', cfg_json.get('crossover', 'two_point'))
 
     tasks = []
     for (x0, y0, x1, y1) in boxes:
@@ -121,8 +172,7 @@ def main():
     # Compose output incrementally
     canvas = Image.new('RGB', (W, H), (255, 255, 255))
 
-    # Mirror genetics.py: always attempt to show an interactive window when preview is requested.
-    show_gui = bool(args.preview)
+    show_gui = bool(preview_flag)
     img_display = None
     if show_gui:
         plt.ion()
@@ -134,110 +184,79 @@ def main():
         except Exception:
             pass
 
-    # def _draw_border(x0, y0, im: Image.Image):
-    #     try:
-    #         dr = ImageDraw.Draw(canvas)
-    #         w, h = im.size
-    #         dr.rectangle([x0, y0, x0 + w - 1, y0 + h - 1], outline=(255, 0, 0), width=1)
-    #     except Exception:
-    #         pass
-
-    # Two execution modes:
-    # 1) Parallel/processes > 1: evolve tiles independently; preview on completion of tiles
-    # 2) Sequential (default): step all tiles generation-by-generation; preview every N generations
-    if args.processes and args.processes > 1:
-        completed = 0
-        def _handle_result(res):
-            nonlocal completed, img_display
-            x0, y0, best_img = res
-            canvas.paste(best_img, (x0, y0))
-            # _draw_border(x0, y0, best_img)
-            completed += 1
-            if args.preview and (completed % max(1, args.preview_interval) == 0):
-                if show_gui and img_display is not None:
-                    img_display.set_data(np.asarray(canvas))
-                    plt.pause(0.001)
-                # also save a snapshot for debugging
-                out_path = os.path.join(args.preview_save_dir, f"preview_{completed:05d}.png")
-                os.makedirs(args.preview_save_dir, exist_ok=True)
-                canvas.save(out_path)
-
-        print(f"Tiles: {len(tasks)} | processes: {args.processes}")
-        with mp.Pool(processes=args.processes) as pool:
-            for res in pool.imap_unordered(_run_tile_worker, tasks):
-                _handle_result(res)
-    else:
         # Sequential, generation-synchronized mode with logs each generation
-        print(f"Tiles: {len(tasks)} | sequential mode with per-generation preview interval {args.preview_interval}")
-        # Build a population per tile
-        tile_objs = []
-        for (_, x0, y0, x1, y1, tile_np, _) in tasks:
-            h, w = tile_np.shape[:2]
-            timg = Image.fromarray(tile_np)
-            pop = Population(
-                population_size=cfg.get('population_size', 40),
-                width=w,
-                height=h,
-                n_polygons=cfg.get('polygons_per_tile', cfg.get('n_polygons', 60)),
-                fitness_method=mse_fitness,
-                mutation_method=multi_gene_mutation,
-                selection_method=ranking_selection,
-                replacement_method=traditional_selection,
-                max_gen=int(cfg.get('generations', cfg.get('max_generations', args.gens))),
-                mutation_rate=cfg.get('mutation_rate', 0.10),
-                crossover_rate=cfg.get('crossover_rate', 0.70),
-                elite_size=cfg.get('elite_size', 6),
-                seed_store=None,
-                seed_frac=0.0,
-                target_img=timg,
-                crossover_method=two_point_crossover,
-                n_vertices=cfg.get('n_vertices', 3)
-            )
+    print(f"Tiles: {len(tasks)} | sequential mode with per-generation preview interval {preview_interval}")
+    # Build a population per tile
+    tile_objs = []
+    for (_, x0, y0, x1, y1, tile_np, _) in tasks:
+        h, w = tile_np.shape[:2]
+        timg = Image.fromarray(tile_np)
+        pop = Population(
+            population_size=cfg.get('population_size', 40),
+            width=w,
+            height=h,
+            n_polygons=cfg.get('polygons_per_tile', cfg.get('n_polygons', 60)),
+            fitness_method=fitness_map[cfg.get("fitness", "mse")],
+            mutation_method=mutation_map[cfg.get("mutation", "multi_gene")],
+            selection_method=selection_map[cfg.get("selection", "ranking")],
+            replacement_method=replacement_map[cfg.get("replacement", "traditional")],
+            max_gen=int(cfg.get('generations', cfg.get('max_generations', 400))),
+            mutation_rate=cfg.get('mutation_rate', 0.10),
+            crossover_rate=cfg.get('crossover_rate', 0.70),
+            elite_size=cfg.get('elite_size', 6),
+            seed_store=None,
+            seed_frac=0.0,
+            target_img=timg,
+            crossover_method=crossover_map[cfg.get("crossover", "two_point")],
+            n_vertices=cfg.get('n_vertices', 3)
+        )
 
-            tile_objs.append((x0, y0, tile_np, pop))
+        tile_objs.append((x0, y0, tile_np, pop))
 
-        # Initial eval
+    # Initial eval
+    for (_, _, tile_np, pop) in tile_objs:
+        _eval_population(pop, tile_np)
+
+    def _compose_current():
+        for (x0, y0, _, pop) in tile_objs:
+            im = pop.best_individual.render()
+            canvas.paste(im, (x0, y0))
+            # _draw_border(x0, y0, im) #debug: show tile borders
+
+    # Log + preview gen 0
+    fits = [pop.get_statistics()['best_fitness'] for (_, _, _, pop) in tile_objs]
+    print(f"Gen 0: avg_best={np.mean(fits):.6f} min_best={np.min(fits):.6f}")
+    if preview_flag and (0 % max(1, preview_interval) == 0):
+        _compose_current()
+        if show_gui and img_display is not None:
+            img_display.set_data(np.asarray(canvas))
+            plt.pause(0.001)
+        if save_previews:
+            outp0 = os.path.join(preview_save_dir, f"preview_00000.png")
+            os.makedirs(preview_save_dir, exist_ok=True)
+            canvas.save(outp0)
+
+    # Step generations
+    for gen in range(1, int(cfg.get('generations', 400)) + 1):
         for (_, _, tile_np, pop) in tile_objs:
+            pop.create_next_generation()
             _eval_population(pop, tile_np)
-
-        def _compose_current():
-            for (x0, y0, _, pop) in tile_objs:
-                im = pop.best_individual.render()
-                canvas.paste(im, (x0, y0))
-                # _draw_border(x0, y0, im)
-
-        # Log + preview gen 0
         fits = [pop.get_statistics()['best_fitness'] for (_, _, _, pop) in tile_objs]
-        print(f"Gen 0: avg_best={np.mean(fits):.6f} min_best={np.min(fits):.6f}")
-        if args.preview and (0 % max(1, args.preview_interval) == 0):
+        print(f"Gen {gen}: avg_best={np.mean(fits):.6f} min_best={np.min(fits):.6f}")
+        if preview_flag and (gen % max(1, preview_interval) == 0):
             _compose_current()
             if show_gui and img_display is not None:
                 img_display.set_data(np.asarray(canvas))
                 plt.pause(0.001)
-            out_path = os.path.join(args.preview_save_dir, f"preview_00000.png")
-            os.makedirs(args.preview_save_dir, exist_ok=True)
-            canvas.save(out_path)
-
-        # Step generations
-        for gen in range(1, args.gens + 1):
-            for (_, _, tile_np, pop) in tile_objs:
-                pop.create_next_generation()
-                _eval_population(pop, tile_np)
-            fits = [pop.get_statistics()['best_fitness'] for (_, _, _, pop) in tile_objs]
-            print(f"Gen {gen}: avg_best={np.mean(fits):.6f} min_best={np.min(fits):.6f}")
-            if args.preview and (gen % max(1, args.preview_interval) == 0):
-                _compose_current()
-                if show_gui and img_display is not None:
-                    img_display.set_data(np.asarray(canvas))
-                    plt.pause(0.001)
-                out_path = os.path.join(args.preview_save_dir, f"preview_{gen:05d}.png")
-                os.makedirs(args.preview_save_dir, exist_ok=True)
-                canvas.save(out_path)
+            if save_previews:
+                outpg = os.path.join(preview_save_dir, f"preview_{gen:05d}.png")
+                os.makedirs(preview_save_dir, exist_ok=True)
+                canvas.save(outpg)
 
     # Final save and optional final show
-    os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
-    canvas.save(args.out)
-    print(f'Saved composed image: {args.out}')
+    os.makedirs(os.path.dirname(out_path) or '.', exist_ok=True)
+    canvas.save(out_path)
+    print(f'Saved composed image: {out_path}')
     if show_gui:
         plt.ioff()
         plt.show()
