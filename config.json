@@ -1,12 +1,12 @@
 {
   "tiled":true,
   "save_previews":true,
-  "render_mode":"doomsday",
+  "render_mode":"compat",
   "use_gpu":true,
-  "tile_size": 40,
+  "tile_size": 30,
 
-  "image_path": "starry_night.jpg",
-  "n_polygons": 10,
+  "image_path": "spacec.jpg",
+  "n_polygons": 5,
   "n_vertices": 3,
 
   "population_size": 120,
@@ -17,7 +17,7 @@
   "stop_fitness": 0.92,
 
   "fitness": "mse",
-  "mutation": "focused",
+  "mutation": "multi_gene",
   "selection": "tournament",
   "replacement": "traditional",
   "crossover": "two_point",

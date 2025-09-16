@@ -3,7 +3,7 @@ from .ssim import ssim_fitness
 from ..individual import Individual
 from .deltaE import delta_e_fitness
 
-def mixed_fitness_mse_ssim(
+def mixed_fitness_mse_ssim_deltaE(
     target,
     generated,
     weight_mse=0.66,
