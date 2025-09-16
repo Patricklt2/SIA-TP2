@@ -4,13 +4,6 @@ def annular_crossover(parent1, parent2, rng=None):
     if rng is None:
         rng = random.Random()
 
-    if len(parent1.polygons) != len(parent2.polygons):
-        raise ValueError("Parents must have the same chromosome length for crossover.")
-
-    size = len(parent1.polygons)
-    if size == 0:
-        return parent1.clone(), parent2.clone()
-
     child1 = parent1.clone()
     child2 = parent2.clone()
 
