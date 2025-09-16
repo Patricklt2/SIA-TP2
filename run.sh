@@ -4,16 +4,13 @@ set -Eeuo pipefail
 usage() {
   cat <<'EOF'
 Uso:
-  ./run.sh <ruta/al/config.json>            # modo normal (GA tradicional)
-  ./run.sh -t <ruta/al/config.json>         # modo tiled
+  ./run.sh <ruta/al/config.json>        # modo normal (GA tradicional)
+  ./run.sh -t <ruta/al/config.json>        # modo tiled
   ./run.sh --tiled <ruta/al/config.json>
 
 Notas:
 - Requiere un venv en ./venv (Linux/macOS): venv/bin/activate
-- En modo tiled mapea del JSON: image_path, tile_size, tile_threads, output_image,
-  n_polygons, population_size, max_generations, elite_size, mutation_rate,
-  crossover_rate, tile_preview (o show_live), tile_preview_interval (o plot_interval).
-- Si el JSON tiene render_mode (o use_fast_render true/false) se exporta GEN_RENDER_MODE.
+- Si el JSON tiene render_mode se exporta la variable de entorno GEN_RENDER_MODE.
 EOF
 }
 
@@ -79,84 +76,15 @@ if render:
 PY
 }
 
+
 if $TILED; then
-  # --- modo tiled: leer JSON y mapear a flags de src.genetics.tiled_ga ---
-  # Producimos variables shell escapadas correctamente (usando shlex.quote desde Python)
-  # para evitar problemas con espacios.
-  eval "$(
-    CFG="$CONFIG" "$PYTHON" - <<'PY'
-import json, os, shlex
-cfg_path = os.environ["CFG"]
-try:
-    with open(cfg_path, "r", encoding="utf-8") as f:
-        c = json.load(f)
-except Exception as e:
-    raise SystemExit(f"ERROR leyendo JSON: {cfg_path}: {e}")
-
-def q(v): return shlex.quote(str(v))
-
-img   = c.get("image_path")
-if not img:
-    raise SystemExit("Config: falta 'image_path'")
-tile  = int(c.get("tile_size", 64))
-procs = int(c.get("tile_threads", 0))
-out   = c.get("output_image", "out/tiled_best.png")
-polys = int(c.get("n_polygons", 60))
-vertx = int(c.get("n_vertices", 3))
-pop   = int(c.get("population_size", 40))
-gens  = int(c.get("max_generations", 400))
-elite = int(c.get("elite_size", 6))
-mut   = float(c.get("mutation_rate", 0.10))
-cross = float(c.get("crossover_rate", 0.70))
-
-preview = bool(c.get("tile_preview", c.get("show_live", False)))
-pint    = int(c.get("tile_preview_interval", c.get("plot_interval", 8)))
-
-print(f"IMG={q(img)}")
-print(f"TILE={tile}")
-print(f"PROCS={procs}")
-print(f"OUTP={q(out)}")
-print(f"POLYS={polys}")
-print(f"VERTX={vertx}")
-print(f"POP={pop}")
-print(f"GENS={gens}")
-print(f"ELITE={elite}")
-print(f"MUT={mut}")
-print(f"CROSS={cross}")
-print(f"PREVIEW={'true' if preview else 'false'}")
-print(f"PINT={pint}")
-PY
-  )"
-
-  # exportar GEN_RENDER_MODE si corresponde
+  # --- modo tiled: exportar GEN_RENDER_MODE y correr tiled_ga ---
   eval "$(export_render_mode || true)"
-
-  # armar args
-  ARGS=(
-    -m src.genetics.tiled_ga
-    --image "$IMG"
-    --tile "$TILE"
-    --out "$OUTP"
-    --polys-per-tile "$POLYS"
-    --pop "$POP"
-    --gens "$GENS"
-    --elite "$ELITE"
-    --mut "$MUT"
-    --cross "$CROSS"
-    --vertx "$VERTX"
-  )
-  if (( PROCS > 0 )); then
-    ARGS+=( --processes "$PROCS" )
-  fi
-  if [[ "$PREVIEW" == "true" ]]; then
-    ARGS+=( --preview --preview-interval "$PINT" )
-  fi
-
-  echo "[run] python ${ARGS[*]}"
-  exec "$PYTHON" "${ARGS[@]}"
+  echo "[run] python -m src.genetics.tiled_ga --config \"$CONFIG\""
+  exec "$PYTHON" -m src.genetics.tiled_ga --config "$CONFIG"
 
 else
-  # --- modo normal: exportar GEN_RENDER_MODE si corresponde y correr genetics ---
+  # --- modo normal: exportar GEN_RENDER_MODE y correr genetics ---
   eval "$(export_render_mode || true)"
   echo "[run] python -m src.genetics.genetics --config \"$CONFIG\""
   exec "$PYTHON" -m src.genetics.genetics --config "$CONFIG"
