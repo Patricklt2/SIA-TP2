@@ -261,16 +261,16 @@ python .\compare_vary.py --config .\config.json --vary selection --reps 5 --save
 | `--outdir` | Carpeta raíz de resultados. Por defecto: `./compare/<categoría>`. | `--outdir ./resultados/crossover` |
 | `--save` | Si está presente, guarda los gráficos en PNG. | `--save` |
 
-# Promedio por método — `avg_best_by_method.py`
+## Promedio por método
 
 Este script **promedia** el `best_fitness` por **generación** para **cada método** (p. ej., `selection`, `crossover`, `mutation`, `fitness`, `replacement`) y dibuja **todas las curvas** en **un mismo gráfico** (una línea por método).  
 Opcionalmente exporta un **CSV agregado** y puede dibujar **bandas ±std**.
 
 > Recomendación: primero generá los CSV con `compare_vary.py` (o tu propio runner). Por ejemplo, si variás `selection`, vas a tener archivos tipo: `./compare/selection/csv/<metodo>_rep<i>.csv`.
 
-## Uso básico
+### Uso básico
 
-### Selección
+**Selección**
 ```bash
 # Linux/mac/WSL
 python avg_best_by_method.py \
@@ -287,7 +287,7 @@ python .\avg_best_by_method.py `
   --shade --title "Mean best_fitness por selection"
 ```
 
-### Crossover
+**Crossover**
 ```bash
 python avg_best_by_method.py \
   --csvdir ./compare/crossover/csv \
