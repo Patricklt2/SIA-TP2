@@ -102,6 +102,7 @@ tile  = int(c.get("tile_size", 64))
 procs = int(c.get("tile_threads", 0))
 out   = c.get("output_image", "out/tiled_best.png")
 polys = int(c.get("n_polygons", 60))
+vertx = int(c.get("n_vertices", 3))
 pop   = int(c.get("population_size", 40))
 gens  = int(c.get("max_generations", 400))
 elite = int(c.get("elite_size", 6))
@@ -116,6 +117,7 @@ print(f"TILE={tile}")
 print(f"PROCS={procs}")
 print(f"OUTP={q(out)}")
 print(f"POLYS={polys}")
+print(f"VERTX={vertx}")
 print(f"POP={pop}")
 print(f"GENS={gens}")
 print(f"ELITE={elite}")
@@ -141,7 +143,7 @@ PY
     --elite "$ELITE"
     --mut "$MUT"
     --cross "$CROSS"
-    --vertx "$vertx"
+    --vertx "$VERTX"
   )
   if (( PROCS > 0 )); then
     ARGS+=( --processes "$PROCS" )
