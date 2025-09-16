@@ -4,6 +4,8 @@ def annular_crossover(parent1, parent2, rng=None):
     if rng is None:
         rng = random.Random()
 
+    size = len(parent1.polygons)
+
     child1 = parent1.clone()
     child2 = parent2.clone()
 
