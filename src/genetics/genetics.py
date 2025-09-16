@@ -1,7 +1,7 @@
 from .fitness.mse import mse_fitness
 from .fitness.ssim import ssim_fitness
 from .fitness.mixed_fitness import mixed_fitness
-from .fitness.mixed_fitness_mse_ssim_deltae import mixed_fitness_mse_ssim_deltaE
+from .fitness.mixed_mse_ssim_deltae import mixed_fitness_mse_ssim_deltaE
 from .fitness.deltaE import delta_e_fitness
 
 from .mutation.single_gene_mutation import single_gene_mutation
