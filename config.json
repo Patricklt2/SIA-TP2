@@ -7,7 +7,7 @@
 
   "image_path": "starry_night.jpg",
   "n_polygons": 10,
-  "n_vertices": 6,
+  "n_vertices": 3,
 
   "population_size": 120,
   "mutation_rate": 0.12,
