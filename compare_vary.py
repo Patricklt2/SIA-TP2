@@ -121,6 +121,22 @@ def main():
     # cargar config base
     with open(args.config, "r", encoding="utf-8") as f:
         base_cfg = json.load(f)
+
+
+    render_mode = base_cfg.get("render_mode", None)
+    if not render_mode:
+        ufr = base_cfg.get("use_fast_render", None)
+        if isinstance(ufr, bool):
+            render_mode = "fast" if ufr else "compat"
+
+    if render_mode:
+        os.environ["GEN_RENDER_MODE"] = render_mode
+        print(f"[env] GEN_RENDER_MODE={render_mode}")
+    else:
+        # opcional: limpiar por si quedó seteada de antes
+        os.environ.pop("GEN_RENDER_MODE", None)
+        print("[env] GEN_RENDER_MODE no seteada (usa default)")
+
     base_cfg.setdefault("show_live", False)
 
     # preflight deps
