@@ -241,22 +241,71 @@ Para cada valor corre *N* repeticiones, guarda **CSV + imagen final por repetici
 **Linux/mac/WSL**
 ```bash
 source venv/bin/activate
-python compare_vary.py --config ./configs/config.json --vary selection --reps 5 --save
+python compare_vary.py --config ./config.json --vary selection --reps 5 --save
 ```
 
 **PowerShell (Windows)**
 ```powershell
 .\venv\Scripts\Activate.ps1
-python .\compare_vary.py --config .\configs\config.json --vary selection --reps 5 --save
+python .\compare_vary.py --config .\config.json --vary selection --reps 5 --save
 ```
 
 ### Parámetros
 
 | Flag | Descripción | Ejemplo |
 |---|---|---|
-| `--config` | Ruta al JSON base. | `--config ./configs/config.json` |
+| `--config` | Ruta al JSON base. | `--config ./config.json` |
 | `--vary` | Categoría a variar: `fitness` \| `mutation` \| `selection` \| `replacement` \| `crossover`. | `--vary crossover` |
 | `--values` | Lista de valores (coma-separada). Si no se pasa, usa todos. | `--values single_point,two_point,uniform` |
 | `--reps` | Repeticiones por valor. | `--reps 5` |
 | `--outdir` | Carpeta raíz de resultados. Por defecto: `./compare/<categoría>`. | `--outdir ./resultados/crossover` |
 | `--save` | Si está presente, guarda los gráficos en PNG. | `--save` |
+
+# Promedio por método — `avg_best_by_method.py`
+
+Este script **promedia** el `best_fitness` por **generación** para **cada método** (p. ej., `selection`, `crossover`, `mutation`, `fitness`, `replacement`) y dibuja **todas las curvas** en **un mismo gráfico** (una línea por método).  
+Opcionalmente exporta un **CSV agregado** y puede dibujar **bandas ±std**.
+
+> Recomendación: primero generá los CSV con `compare_vary.py` (o tu propio runner). Por ejemplo, si variás `selection`, vas a tener archivos tipo: `./compare/selection/csv/<metodo>_rep<i>.csv`.
+
+## Uso básico
+
+### Selección
+```bash
+# Linux/mac/WSL
+python avg_best_by_method.py \
+  --csvdir ./compare/selection/csv \
+  --outplot ./compare/selection/mean_best_by_method.png \
+  --outcsv  ./compare/selection/mean_best_by_method.csv \
+  --shade --title "Mean best_fitness por selection"
+
+# PowerShell
+python .\avg_best_by_method.py `
+  --csvdir .\compare\selection\csv `
+  --outplot .\compare\selection\mean_best_by_method.png `
+  --outcsv  .\compare\selection\mean_best_by_method.csv `
+  --shade --title "Mean best_fitness por selection"
+```
+
+### Crossover
+```bash
+python avg_best_by_method.py \
+  --csvdir ./compare/crossover/csv \
+  --labelcol crossover \
+  --outplot ./compare/crossover/mean_best_by_method.png \
+  --outcsv  ./compare/crossover/mean_best_by_method.csv \
+  --shade --title "Mean best_fitness por crossover"
+```
+
+
+## Parámetros principales
+
+| Flag | Descripción |
+|---|---|
+| `--csvdir` | Carpeta donde están los CSV por corrida (p. ej., `./compare/selection/csv`). |
+| `--pattern` | Patrón glob para filtrar archivos (default `*.csv`). |
+| `--labelcol` | Columna para agrupar los métodos (default `selection`). Podés usar `crossover`, `mutation`, `fitness` o `replacement`. |
+| `--outplot` | Ruta para guardar el gráfico (PNG/JPG/SVG). Si no se indica, abre ventana. |
+| `--outcsv` | Ruta para guardar el CSV agregado con columnas: `method, generation, mean_best_fitness, std_best_fitness, n_runs`. |
+| `--shade` | Si está presente, dibuja una banda de desvío estándar (±std) para cada método. |
+| `--title`, `--dpi` | Personalización del gráfico. |
