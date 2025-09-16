@@ -1,9 +1,9 @@
 {
   "tiled":true,
   "save_previews":true,
-  "render_mode":"compat",
+  "render_mode":"doomsday",
   "use_gpu":true,
-  "tile_size": 50,
+  "tile_size": 40,
 
   "image_path": "starry_night.jpg",
   "n_polygons": 10,
@@ -17,7 +17,7 @@
   "stop_fitness": 0.92,
 
   "fitness": "mse",
-  "mutation": "uniform",
+  "mutation": "focused",
   "selection": "tournament",
   "replacement": "traditional",
   "crossover": "two_point",
