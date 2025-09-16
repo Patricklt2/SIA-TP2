@@ -7,23 +7,24 @@ Comparacion de métodos de selección:
 - Lee el *último* valor de best_fitness y elapsed_sec de cada CSV
 - Calcula media y desvío (error bars) por método
 - Grafica DOS barras: (1) fitness final y (2) tiempo total
+- **Nuevo**: guarda la imagen final de CADA repetición como ./compare/selection/images/<metodo>_rep<i>.png
 
 Uso típico (activar venv antes):
   python compare_selection.py --config ./configs/config.json
   python compare_selection.py --config ./configs/config.json --reps 5 --outdir ./compare/sel --save
 
 Opciones:
-  --config   Ruta al JSON base (se sobrescribe `selection` y `metrics_csv` por corrida)
+  --config   Ruta al JSON base (se sobrescribe `selection`, `metrics_csv` y `output_image` por corrida)
   --reps     Repeticiones por método (default 3)
   --methods  Lista de métodos separados por coma (default: elite,tournament,roulette,universal,boltzmann,ranking)
-  --outdir   Carpeta donde colocar configs temporales, CSV y resultados (default ./compare/selection)
+  --outdir   Carpeta donde colocar configs temporales, CSV, imágenes y gráficos (default ./compare/selection)
   --save     Si está presente, guarda gráficos en PNG dentro de outdir además de mostrarlos
 """
 import argparse
 import csv
 import json
 import os
-import shutil
+import sys
 import subprocess
 from typing import Dict, List, Tuple
 
@@ -58,7 +59,7 @@ def read_last_values(csv_path: str) -> Tuple[float, float]:
                 last_best = float(row[idx[bf_name]])
                 last_time = float(row[idx[time_name]])
             except Exception:
-                # si alguna fila viene mal, continuar
+                # saltar filas mal formateadas
                 continue
     if last_best is None or last_time is None:
         raise SystemExit(f"No se pudieron leer valores finales de {csv_path}.")
@@ -76,10 +77,12 @@ def write_json(path: str, data: dict) -> None:
 
 
 def run_once(config_path: str) -> None:
-    """Ejecuta el módulo con la config dada."""
-    cmd = ["python", "-m", "src.genetics.genetics", "--config", config_path]
+    """Ejecuta el módulo con la config dada usando el mismo intérprete (venv)."""
+    cmd = [sys.executable, "-m", "src.genetics.genetics", "--config", config_path]
+    env = os.environ.copy()
+    env["MPLBACKEND"] = "Agg"  # evita ventanas durante el benchmark
     print("[run]", " ".join(cmd))
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, env=env)
 
 
 def main():
@@ -88,12 +91,18 @@ def main():
     ap.add_argument("--reps", type=int, default=3, help="Repeticiones por método (default 3).")
     ap.add_argument("--methods", type=str, default=",".join(DEFAULT_METHODS),
                     help=f"Métodos separados por coma. Default: {','.join(DEFAULT_METHODS)}")
-    ap.add_argument("--outdir", type=str, default="./compare/selection", help="Carpeta de salidas (configs/csv/plots).")
+    ap.add_argument("--outdir", type=str, default="./compare/selection", help="Carpeta de salidas (configs/csv/images/plots).")
     ap.add_argument("--save", action="store_true", help="Guardar los gráficos en PNG dentro de outdir.")
     args = ap.parse_args()
 
     methods = [m.strip() for m in args.methods.split(",") if m.strip()]
     ensure_dir(args.outdir)
+
+    # subcarpetas
+    cfg_dir = os.path.join(args.outdir, "configs")
+    csv_dir = os.path.join(args.outdir, "csv")
+    img_dir = os.path.join(args.outdir, "images")
+    ensure_dir(cfg_dir); ensure_dir(csv_dir); ensure_dir(img_dir)
 
     # cargar config base
     with open(args.config, "r", encoding="utf-8") as f:
@@ -112,12 +121,12 @@ def main():
             # config temporal
             cfg = dict(base_cfg)
             cfg["selection"] = method
-            metrics_rel = os.path.join(args.outdir, "csv", f"{run_name}.csv")
+            metrics_rel = os.path.join(csv_dir, f"{run_name}.csv")
             cfg["metrics_csv"] = metrics_rel
-            # desactivar imagen final si se desea (vacío -> no guarda)
-            # cfg["output_image"] = ""
+            # NUEVO: guardar imagen final de cada repetición
+            cfg["output_image"] = os.path.join(img_dir, f"{run_name}.png")
 
-            cfg_path = os.path.join(args.outdir, "configs", f"{run_name}.json")
+            cfg_path = os.path.join(cfg_dir, f"{run_name}.json")
             write_json(cfg_path, cfg)
 
             # ejecutar
@@ -127,7 +136,7 @@ def main():
             # leer resultados finales
             best_final, time_final = read_last_values(metrics_rel)
             results[method].append((best_final, time_final))
-            print(f"[ok] {run_name}: best_final={best_final:.6g}  time={time_final:.3f}s")
+            print(f"[ok] {run_name}: best_final={best_final:.6g}  time={time_final:.3f}s  img={cfg['output_image']}")
 
     # --- agregar CSV resumen ---
     summary_csv = os.path.join(args.outdir, "summary_selection.csv")
